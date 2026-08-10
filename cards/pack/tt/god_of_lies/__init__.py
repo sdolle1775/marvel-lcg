@@ -117,6 +117,7 @@ def _swap_physical_avatar(
     fading: 'Villain',
     next_avatar: 'Villain',
     effect: 'Effect',
+    reset_health: bool = True
 ) -> 'Villain':
     """Swap both faces of two physical avatar cards while retaining attachments."""
     active_card = fading.card
@@ -144,7 +145,8 @@ def _swap_physical_avatar(
     old_front.card = aside_card
     old_fading.card = aside_card
 
-    new_front.ResetHealth(effect)
+    if reset_health:
+        new_front.ResetHealth(effect)
     for attachment in new_front.GetAttachedAttachments():
         if attachment.IsName("Intense Focus"):
             bonus = Worlds.ConvertPerPlayerIconToInt("2*", effect)
@@ -168,7 +170,7 @@ def SwapAvatarWithRandomSetAside(effect: 'Effect') -> 'Villain|None':
     # card to its illusion face only long enough to use the same safe swap path.
     active.card.Flip(effect, call_reveal=False)
     fading = active.card.face.CastTo(Villain)
-    return _swap_physical_avatar(fading, next_avatar, effect)
+    return _swap_physical_avatar(fading, next_avatar, effect, reset_health=False)
 
 
 def ShatterTheIllusion(effect: 'Effect') -> None:

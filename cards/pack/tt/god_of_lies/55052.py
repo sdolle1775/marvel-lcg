@@ -3,11 +3,7 @@ from . import *
 
 def GetAbilities() -> Sequence['Ability']:
     def attack(effect: 'Effect', message: 'Message.WhenUnitWouldAttack') -> None:
-        message.trigger.CastTo(Unit2).GainForThisActive(
-            effect,
-            message,
-            attack=4,
-        )
+        message.DealAdditionalDamage(4, effect)
 
     return [
         AbilityFactory.WhenUnitWouldAttack(

@@ -3,11 +3,7 @@ from . import *
 
 def GetAbilities() -> Sequence['Ability']:
     def thwart(effect: 'Effect', message: 'Message.WhenUnitWouldThwart') -> None:
-        message.trigger.CastTo(Unit2).GainForThisActive(
-            effect,
-            message,
-            thwart=4,
-        )
+        message.RemoveAdditionalThreat(4, effect)
 
     return [
         AbilityFactory.WhenUnitWouldThwart(
