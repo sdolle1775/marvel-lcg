@@ -1,0 +1,143 @@
+body.is-touch,
+body.is-touch .card,
+body.is-touch .card *,
+body.is-touch .button {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+body.is-touch,
+body.is-touch .card {
+    touch-action: manipulation;
+}
+
+@media (hover: none) {
+    body.is-touch .card:hover:not(.activating):not(.selected) {
+        --this-scale: 1;
+    }
+
+    body.is-touch #player-all-hand-cards:hover .card {
+        --top: calc(var(--y) * 1px) !important;
+    }
+
+    body.is-touch .card:hover .face {
+        z-index: auto !important;
+    }
+
+    body.is-touch .card.exhausted:hover .face {
+        rotate: -30deg;
+    }
+
+    body.is-touch .card:hover,
+    body.is-touch .card:hover .face,
+    body.is-touch .card:hover .face .image,
+    body.is-touch .card:hover .face .image::after,
+    body.is-touch .card:hover .face .info,
+    body.is-touch .card:hover .face .info_pay,
+    body.is-touch .card:hover::before,
+    body.is-touch .card:hover::after {
+        transition: transform var(--anime-move-time) linear,
+                    opacity var(--anime-move-time) linear !important;
+    }
+
+    body.is-touch .card .face,
+    body.is-touch .card .face .image,
+    body.is-touch .card .face .image::after,
+    body.is-touch .card .face .equip::after {
+        will-change: auto !important;
+    }
+
+    body.is-touch:not(.scene-3d) .card {
+        transform: translate(var(--left), var(--top)) !important;
+    }
+
+    body.is-touch .card.moving,
+    body.is-touch .card.shuffling {
+        will-change: transform;
+    }
+}
+
+body.is-touch #left-side-bar {
+    left: 0;
+}
+
+body.is-touch #right-side-bar {
+    right: 0;
+}
+
+#mobile-fullscreen-btn {
+    display: none;
+}
+
+body.is-touch #mobile-fullscreen-btn {
+    display: block;
+}
+
+#mobile-fullscreen-btn.hide {
+    display: none !important;
+}
+
+#rotate-overlay {
+    display: none;
+}
+
+body.is-touch.is-portrait:not(.is-fullscreen) #rotate-overlay {
+    display: flex;
+    position: fixed;
+    inset: 0;
+    z-index: 300;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(#222, #000);
+    color: #ddd;
+    text-align: center;
+    font-family: sans-serif;
+    padding: 24px;
+}
+
+#rotate-overlay .rotate-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+    max-width: 420px;
+}
+
+#rotate-overlay .rotate-icon {
+    font-size: 64px;
+    animation: rotate-hint 1.8s ease-in-out infinite;
+}
+
+@keyframes rotate-hint {
+    0%, 100% { transform: rotate(0deg); }
+    50%      { transform: rotate(90deg); }
+}
+
+#rotate-overlay .rotate-title {
+    font-size: 20px;
+    font-weight: bold;
+}
+
+#rotate-overlay .rotate-sub {
+    font-size: 14px;
+    opacity: 0.8;
+    line-height: 1.5;
+}
+
+#rotate-overlay #rotate-fs-btn {
+    margin-top: 6px;
+    padding: 12px 22px;
+    font-size: 16px;
+    font-weight: bold;
+    color: #fff;
+    background-color: #569AFE;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+#rotate-overlay #rotate-fs-btn:active {
+    background-color: #3f7fd6;
+}
