@@ -60,10 +60,14 @@ import { SwipeDetector } from './window.js';
 import { Client } from './client.js';
 
 import { Scene } from './scene.js';
+import { FillScreen } from './fill-screen.js';
+import { Mobile } from './mobile.js';
 import { AutoActivate } from './auto_activate.js';
 import { ErrorDialog } from './error_dialog.js';
 import { Message } from './message.js';
 Scene.init()
+FillScreen.init()
+Mobile.init()
 
 UI.init()
 ErrorDialog.init()
