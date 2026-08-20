@@ -59,12 +59,16 @@ body.is-touch .card {
     }
 }
 
-body.is-touch #left-side-bar {
-    left: 0;
+body.is-touch #right-side-bar.touch-open {
+    right: 0;
 }
 
-body.is-touch #right-side-bar {
-    right: 0;
+body.is-touch #right-side-bar.touch-open #right-side-bar-handle {
+    opacity: 0;
+}
+
+body.is-touch #left-side-bar {
+    left: 0;
 }
 
 #mobile-fullscreen-btn {

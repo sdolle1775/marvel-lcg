@@ -49,6 +49,7 @@ export class Mobile {
         Mobile.setupLongPress();
         Mobile.setupFullscreenButton();
         Mobile.setupRotatePrompt();
+        Mobile.setupSideBars();
         Mobile.updateOrientation();
 
         window.addEventListener('resize', Mobile.updateOrientation);
@@ -159,6 +160,30 @@ export class Mobile {
         requestAnimationFrame(() => {
             element.style.pointerEvents = '';
             Mobile.flushing = false;
+        });
+    }
+
+    private static setupSideBars(): void {
+        const side_bar = document.getElementById('right-side-bar');
+        const handle = document.getElementById('right-side-bar-handle');
+        if (!side_bar || !handle) {
+            return;
+        }
+
+        handle.addEventListener('click', event => {
+            event.stopPropagation();
+            side_bar.classList.toggle('touch-open');
+        });
+
+        document.addEventListener('click', event => {
+            if (!side_bar.classList.contains('touch-open')) {
+                return;
+            }
+            const target = event.target instanceof Node ? event.target : null;
+            if (target && side_bar.contains(target)) {
+                return;
+            }
+            side_bar.classList.remove('touch-open');
         });
     }
 
