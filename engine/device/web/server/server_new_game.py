@@ -2,6 +2,7 @@ from core import *
 from aiohttp import web
 from engine.device.web.server.server_base import GameServerBase
 
+from engine.device.web.game_status import GameStatus
 from engine.lib import Json
 from engine.log import Log
 from game.puzzle.puzzle_data import PuzzleData
@@ -23,6 +24,7 @@ class GameServerNewGame(GameServerBase):
             # A local filesystem problem should not prevent the requested game
             # from launching, even though the campaign state could not persist.
             Log.Warn("CAMPAIGN_SETTINGS", f"Could not save campaign settings: {exc}")
+        GameStatus.OnNewGame(new_game)
         self.game.NewGame(new_game)
         return web.json_response({'result': "New game created"})
 

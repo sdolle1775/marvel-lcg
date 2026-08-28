@@ -3,6 +3,7 @@ from engine.lib import Json
 from engine.log import Log
 from engine.device import *
 from engine.device.web import *
+from engine.device.web.game_status import GameStatus
 
 from aiohttp import web
 from engine.device.web.server.server_base import GameServerBase
@@ -95,6 +96,7 @@ class GameServerSync(GameServerBase):
         post_json = Unquote(post_data)
         assert len(player_ids) == 1
         if post_json:
+            GameStatus.OnMove()
             for player_id in player_ids:
                 if player_id in self.device_manager.asking_players:
                     self.device_manager.WhenInput(post_json, player_id)

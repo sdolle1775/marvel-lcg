@@ -22,6 +22,7 @@ export class Setting {
     static player_id: number = search_params.has('p') ? Number(search_params.get('p') as string) : 0;
     static ver: number = 1
     static scene_3d: boolean = search_params.has('3d_scene') || search_params.has('3d')
+    static fill_screen: boolean = search_params.has('fill_screen')
     static is_remote: boolean = search_params.has('remote')
     static {
         if( window.location.pathname == '/marvel2.html') {

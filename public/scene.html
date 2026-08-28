@@ -6,6 +6,7 @@
     <title>New Game</title>
     <link rel="stylesheet" href="/public/css/menu/style.css">
     <link rel="stylesheet" href="/public/css/font-awesome.css">
+    <link rel="stylesheet" href="/public/css/menu/new-game.css">
 <style>
     * {
         --card--width: 100px;
@@ -485,11 +486,18 @@ async function createScenarios() {
             return option
         }
 
+        // Every scenario of the set is requested at once. Waiting for one button
+        // before starting the next made the picker appear one card at a time.
+        const scenario_names = []
         for( let text of sets_json[key].scenarios ) {
-            details.appendChild(await createButtons(text))
+            scenario_names.push(text)
             if( key != "Weekly Challenges" && key != 'Custom' ) {
-                details.appendChild(await createButtons(`${text}_expert`))
+                scenario_names.push(`${text}_expert`)
             }
+        }
+        const scenario_buttons = await Promise.all(scenario_names.map(text => createButtons(text)))
+        for( let button of scenario_buttons ) {
+            details.appendChild(button)
         }
 
         summary.onclick = (e0) =>{
@@ -644,24 +652,30 @@ async function createSets() {
         return div
     }
 
+    // Every encounter set is requested at once, for the same reason as above.
+    const encounter_names = []
     for( let key in sets_json ) {
         for( let text of sets_json[key].encounters ) {
             if( file_names.includes(text) ) {
-                let btn = await createButtons(text)
-                if( text.startsWith("standard") || text.startsWith("expert") ) {
-                    encounter_select.appendChild(btn)
-                }
-                else {
-                    modular_select.appendChild(btn)
-                }
+                encounter_names.push(text)
             }
         }
     }
-    for( let text of file_names ) {
-        if( text.endsWith("_nemesis") ) {
-            let btn = await createButtons(text, true)
+    const encounter_buttons = await Promise.all(encounter_names.map(text => createButtons(text)))
+    encounter_names.forEach((text, index) => {
+        const btn = encounter_buttons[index]
+        if( text.startsWith("standard") || text.startsWith("expert") ) {
+            encounter_select.appendChild(btn)
+        }
+        else {
             modular_select.appendChild(btn)
         }
+    })
+
+    const nemesis_names = file_names.filter(text => text.endsWith("_nemesis"))
+    const nemesis_buttons = await Promise.all(nemesis_names.map(text => createButtons(text, true)))
+    for( let btn of nemesis_buttons ) {
+        modular_select.appendChild(btn)
     }
 }
 
@@ -1605,6 +1619,11 @@ p:has(#timeout_text) {
             <input type="checkbox" id="scene_3d">3D Render
             <span class="tooltip">The 3D render mode may not function correctly in non-Chromium-based browsers.</span>
         </label>
+
+        <label>
+            <input type="checkbox" id="fill_screen">Fill Screen
+            <span class="tooltip">Removes the black bars on displays that are not 16:9, such as ultrawide monitors and phones in landscape. The play area keeps its proportions and grows sideways.</span>
+        </label>
         </details>
 
         <button type="button" id="clearCacheButton">Reset to default</button>
@@ -2075,6 +2094,7 @@ p:has(#timeout_text) {
                 getOption('#hide_bug_report', '&hide_bug_report'),
                 document.querySelector('#statistics_notification').value == '1' ? `` : `&notification=${document.querySelector('#statistics_notification').value}`,
                 getOption('#scene_3d', '&3d_scene'),
+                getOption('#fill_screen', '&fill_screen'),
             ].join('');
 
             const newUrl = `${currentProtocol}//${currentHost}`;
@@ -2136,7 +2156,7 @@ p:has(#timeout_text) {
     // Define the key for caching the form data object
     const CACHE_KEY = 'form_cache_data';
     cache_ids = ['v16_all', 'v16_player_elimination', 'v16_reveal', 'v16_teamwork', 'v16_referential_ability', 'v16_confuse_stun', 'encounter_cards_ignore_crisis', 'crisis_of_infinite_deadpools',
-        'hide_bug_report', 'show_achievement', 'scene_3d', 'statistics_notification', 'mode_heroic_slider', 'mode_skirmish',
+        'hide_bug_report', 'show_achievement', 'scene_3d', 'fill_screen', 'statistics_notification', 'mode_heroic_slider', 'mode_skirmish',
         'mode', 'rules', 'challenge', 'settings_other',
         'timeout_slider',
     ]
@@ -2287,5 +2307,7 @@ p:has(#timeout_text) {
         });
     }
 </script>
+
+<script src="/public/js/menu/new_game.js?v=1.1.1r" type="module"></script>
 </body>
 </html>
