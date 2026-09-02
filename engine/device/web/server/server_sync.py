@@ -72,6 +72,45 @@ class GameServerSync(GameServerBase):
         self.device_manager.AddSize("Ask", len(compressed_data))
         return web.Response(body=compressed_data, content_type='application/json', headers={'Content-Encoding': 'gzip'})
 
+    async def handle_get_full_search_presentation(self, request: web.Request) -> web.Response:
+        player_ids = self.get_player_ids(request)
+        for player_id in player_ids:
+            presentation = self.device_manager.full_search_presentations.get(player_id)
+            if presentation != None:
+                return web.json_response(asdict(presentation))
+        return web.json_response({})
+
+    async def handle_full_search_presentation_ack(self, request: web.Request) -> web.Response:
+        player_ids = self.get_player_ids(request)
+        if len(player_ids) != 1:
+            return web.Response(status=400)
+        presentation_id = int(request.rel_url.query.get('id', 0))
+        self.device_manager.AcknowledgeFullSearchPresentation(
+            player_ids[0],
+            presentation_id,
+        )
+        if self.device_manager.httpds:
+            self.device_manager.httpds[-1].WebSendRender(
+                player_ids[0],
+                "FullSearchPresentationAck",
+            )
+        return web.Response(status=200)
+
+    async def handle_client_settings(self, request: web.Request) -> web.Response:
+        player_ids = self.get_player_ids(request)
+        data = await request.json()
+        enabled = bool(data.get('show_deck_during_full_search', False))
+        for player_id in player_ids:
+            self.set_full_search_preference(player_id, enabled)
+            if self.device_manager.httpds:
+                self.device_manager.httpds[-1].WebSendRender(
+                    player_id,
+                    "ClientSettings",
+                )
+        return web.json_response({
+            'show_deck_during_full_search': enabled,
+        })
+
     async def handle_get_world(self, request: web.Request) -> web.Response:
         player_ids = self.get_player_ids(request)
         controller = self.get_first_controller(request)
@@ -94,6 +133,12 @@ class GameServerSync(GameServerBase):
         player_ids = self.get_player_ids(request)
         post_json = Unquote(post_data)
         assert len(player_ids) == 1
+        full_search_setting = request.rel_url.query.get('show_deck_during_full_search')
+        if full_search_setting != None:
+            self.set_full_search_preference(
+                player_ids[0],
+                full_search_setting == '1',
+            )
         if post_json:
             for player_id in player_ids:
                 if player_id in self.device_manager.asking_players:
@@ -108,7 +153,10 @@ class GameServerSync(GameServerBase):
 
         self.AddAwaitGetSecurity('/client_updated', self.handle_client_updated)
         self.AddAwaitGetSecurity('/get_ask', self.handle_get_ask)
+        self.AddAwaitGetSecurity('/get_full_search_presentation', self.handle_get_full_search_presentation)
         self.AddAwaitGetSecurity('/get_world', self.handle_get_world)
 
         self.AddPostSecurity('/post', self.handle_post)
+        self.AddPostSecurity('/full_search_presentation_ack', self.handle_full_search_presentation_ack)
+        self.AddPostSecurity('/client_settings', self.handle_client_settings)
 

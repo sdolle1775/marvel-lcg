@@ -120,7 +120,7 @@ class CardRender {
         const cardArea = CardRender.getCardArea(areaName);
         const sortedCards = CardRender.getSortedCards(areaCards, cardArea, areaName, isSelecting, isTempSort);
         const displaysTargetOrder = isSelecting && cardArea === 'deck' && Effect.select_effect_obj.display_in_target_order;
-        const displaysFullSearch = isSelecting && cardArea === 'deck' && Effect.select_effect_obj.full_search_display_targets.length > 0;
+        const displaysFullSearch = isSelecting && cardArea === 'deck' && Effect.getFullSearchDisplayTargets().length > 0;
         parent.classList.toggle(
             'selection-order-top-first',
             displaysTargetOrder || displaysFullSearch
@@ -212,7 +212,7 @@ class CardRender {
                 }
                 return [...areaCards];
             } else {
-                if (Effect.select_effect_obj.full_search_display_targets.length > 0) {
+                if (Effect.getFullSearchDisplayTargets().length > 0) {
                     // Preserve the deck's live bottom-to-top array order. The
                     // top card remains the rightmost card in the open deck.
                     return [...areaCards];

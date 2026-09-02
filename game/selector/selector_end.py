@@ -22,17 +22,33 @@ class SelectorEnd:
         self.full_search_display_faces = list(full_search_display_faces)
         self.full_search_decks = list(full_search_decks)
         self.force_choose = force_choose
+        self._full_search_display_is_explicit = bool(
+            full_search_display_faces or full_search_decks
+        )
 
-    def EnableFullSearchDisplay(self, decks: Sequence['Deck']) -> None:
-        self.full_search_decks = Types.RemoveDuplicates([
-            *self.full_search_decks,
-            *[deck for deck in decks if not deck.flags.is_discards],
-        ])
+    def ResetDetectedFullSearchDisplay(self) -> None:
+        if self._full_search_display_is_explicit:
+            return
+        self.full_search_display_faces = []
+        self.full_search_decks = []
+        self.force_choose = False
+
+    def EnableFullSearchDisplay(
+        self,
+        decks: Sequence['Deck'],
+        *,
+        force_choose: bool=False,
+    ) -> None:
+        if force_choose:
+            self.full_search_decks = Types.RemoveDuplicates([
+                *self.full_search_decks,
+                *[deck for deck in decks if not deck.flags.is_discards],
+            ])
         for deck in decks:
             for face in deck.Get(True):
                 if face not in self.full_search_display_faces:
                     self.full_search_display_faces.append(face)
-        self.force_choose = bool(self.full_search_display_faces)
+        self.force_choose = force_choose and bool(self.full_search_display_faces)
 
     def Process(self, effect: 'Effect', targets: Sequence['CardFace']) -> bool:
         # Shuffle

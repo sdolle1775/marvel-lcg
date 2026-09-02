@@ -15,6 +15,7 @@ class SearchInternal:
                                 range: 'SELECT.RANGE_TYPE'=(1,1),
                                 full_search_display_faces: Sequence['CardFace']=(),
                                 full_search_decks: Sequence['Deck']=(),
+                                force_full_search_prompt: bool=False,
                                 ) -> List[TC]:
 
         from game.card.face.card_face import CardFace
@@ -52,7 +53,9 @@ class SearchInternal:
                 for face in deck.Get(True)
             ]
 
-        show_full_deck_search = bool(full_search_display_faces)
+        show_full_deck_search = (
+            force_full_search_prompt and bool(full_search_display_faces)
+        )
         if show_full_deck_search:
             skip_choose = False
 
@@ -85,6 +88,13 @@ class SearchInternal:
             faces = selector.GetAllLegalTargets(by_effect)
             min = selector.selector_range.GetTargetMin(by_effect, faces)
             max = selector.selector_range.GetTargetMax(by_effect, faces)
+            if full_search_display_faces and not show_full_deck_search:
+                player.GetController().PresentFullSearch(
+                    [face.card.object_id for face in full_search_display_faces],
+                    [face.card.object_id for face in faces],
+                    (min, max),
+                    "Search the full deck",
+                )
             faces = faces[:max]
             if not selector.AfterSelectTargets(by_effect, faces, (min, max)):
                 # selector.peek = True
@@ -93,11 +103,9 @@ class SearchInternal:
         else:
             faces = player.AskChooseSelect(selector, by_effect)
 
-        # Showing a complete deck turns an otherwise automatic "select all"
-        # search into a player-facing confirmation.  The order in which the
-        # player clicks those cards is presentation state, not a game choice.
-        # Restore the search's canonical order before callers perform any
-        # subsequent random choice (for example, Art Museum Heist setup).
+        # Legacy saves may turn an otherwise automatic "select all" search
+        # into a recorded confirmation. Restore canonical order after that
+        # compatibility prompt so its click order cannot affect later RNG.
         if show_full_deck_search and range == "All" and faces:
             faces = [face for face in legal_faces if face in faces]
 

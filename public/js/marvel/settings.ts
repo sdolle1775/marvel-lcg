@@ -110,6 +110,56 @@ export class ButtonSetting {
     static card_tilt = 0
 }
 
+export class ClientPreferences {
+    private static readonly fullSearchCookie = 'btn_show_deck_during_full_search'
+    private static fullSearchByPlayer: { [playerId: number]: boolean } = {}
+
+    static showDeckDuringFullSearch(playerId: number = Setting.player_id): boolean {
+        if( this.fullSearchByPlayer[playerId] == undefined ) {
+            const playerValue = Lib.cookie.getBtnString(
+                `${this.fullSearchCookie}_${playerId}`
+            )
+            const defaultValue = Lib.cookie.getBtnString(this.fullSearchCookie)
+            const savedValue = playerValue == '' ? defaultValue : playerValue
+            this.fullSearchByPlayer[playerId] = savedValue == '1'
+        }
+        return this.fullSearchByPlayer[playerId]
+    }
+
+    static setShowDeckDuringFullSearch(
+        playerId: number,
+        enabled: boolean,
+        persist: boolean=true,
+    ): void {
+        this.fullSearchByPlayer[playerId] = enabled
+        if( persist ) {
+            Lib.cookie.setBtnString(
+                `${this.fullSearchCookie}_${playerId}`,
+                enabled ? '1' : '0',
+            )
+        }
+    }
+
+    static controlledPlayerIds(): number[] {
+        if( Setting.is_hot_seat ) {
+            return [0, 1, 2, 3]
+        }
+        return Setting.getPlayerIds().split(',').map(id => Number(id))
+    }
+
+    static connectionSettings(): string {
+        const settings: { [playerId: number]: boolean } = {}
+        for( const playerId of this.controlledPlayerIds() ) {
+            settings[playerId] = this.showDeckDuringFullSearch(playerId)
+        }
+        return JSON.stringify({
+            client_settings: {
+                show_deck_during_full_search: settings,
+            },
+        })
+    }
+}
+
 (window as any).Setting = Setting;
 (window as any).ButtonSetting = ButtonSetting;
 

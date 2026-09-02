@@ -15,6 +15,15 @@ class AskOptionPayload:
     replay_input    : str
     input_json      : str = field(default="{}") # client input result
 
+@dataclass
+class FullSearchPresentationPayload:
+    presentation_id : int
+    card_ids         : List[int]
+    legal_target_ids : List[int]
+    target_min       : int
+    target_max       : int
+    prompt_text      : str
+
 class DeviceManager:
 
     def __init__(self) -> None:
@@ -24,6 +33,8 @@ class DeviceManager:
 
         self.asking_players: List[int] = [] # 0,1,2,3
         self.ask_options: Dict[int, AskOptionPayload] = {}
+        self.full_search_presentations: Dict[int, FullSearchPresentationPayload] = {}
+        self.full_search_presentation_id = 0
 
         self.notify = SynchronizationNotifier()
 
@@ -56,6 +67,7 @@ class DeviceManager:
     #
     def ExitWait(self):
         self.asking_players = []
+        self.full_search_presentations = {}
         self.notify.ExitWait()
 
     def WhenInput(self, post_json: str, player_id: int):
@@ -63,6 +75,15 @@ class DeviceManager:
         self.ask_options[player_id].options_json = ""
         self.ask_options[player_id].input_json = post_json
         self.notify.WhenInput()
+
+    def AcknowledgeFullSearchPresentation(self, player_id: int, presentation_id: int|None=None) -> None:
+        presentation = self.full_search_presentations.get(player_id)
+        if presentation == None:
+            return
+        if presentation_id != None and presentation.presentation_id != presentation_id:
+            return
+        del self.full_search_presentations[player_id]
+        self.notify.WhenPresentation()
 
     def AfterSync(self):
         self.notify.RefreshExitWait()
@@ -117,6 +138,41 @@ class DeviceManager:
 
         input_json = self.ask_options[player_id].input_json
         return input_json
+
+    def DoPresentFullSearch(
+        self,
+        player_id: int,
+        card_ids: List[int],
+        legal_target_ids: List[int],
+        target_range: Tuple[int, int],
+        prompt_text: str,
+        check: Callable[[], bool],
+    ) -> None:
+        self.notify.RefreshExitWait()
+        self.full_search_presentation_id += 1
+        presentation = FullSearchPresentationPayload(
+            presentation_id=self.full_search_presentation_id,
+            card_ids=card_ids,
+            legal_target_ids=legal_target_ids,
+            target_min=target_range[0],
+            target_max=target_range[1],
+            prompt_text=prompt_text,
+        )
+        self.full_search_presentations[player_id] = presentation
+
+        wait = self.timer.max_timeout
+        if wait <= 0:
+            wait = None
+
+        def check_fn():
+            if self.notify.should_exit_wait:
+                return True
+            if player_id not in self.full_search_presentations:
+                return True
+            return check()
+
+        self.notify.presentation.Wait(check_fn, wait)
+        self.full_search_presentations.pop(player_id, None)
 
     def DoWaitSync(self, player_id: int, check: Callable[[], bool]):
         from core.lib import Time

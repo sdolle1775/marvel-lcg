@@ -56,16 +56,12 @@ class Selector(metaclass=Tracker.Meta):
 
     def EnableFullSearchDisplay(self, effect: 'Effect', faces: Sequence['CardFace']) -> None:
         selector_end = self.selector_end
-        if selector_end.full_search_display_faces or \
+        selector_end.ResetDetectedFullSearchDisplay()
+        if selector_end._full_search_display_is_explicit or \
             not self.is_search or \
             selector_end.not_move or \
             selector_end.not_shuffle or \
             selector_end.display_in_target_order:
-            return
-
-        world = getattr(effect, "world", None)
-        rule = getattr(world, "rule", None)
-        if not bool(getattr(rule, "show_deck_during_full_search", False)):
             return
 
         candidate_decks = Types.RemoveDuplicates([
@@ -80,7 +76,20 @@ class Selector(metaclass=Tracker.Meta):
                 full_search_display_decks.append(deck)
 
         if full_search_display_decks:
-            selector_end.EnableFullSearchDisplay(full_search_display_decks)
+            world = effect.world
+            scene = getattr(world, "scene", None)
+            controller_manager = getattr(world, "controller_manager", None)
+            force_choose = bool(
+                scene and
+                controller_manager and
+                scene.UseLegacyFullSearchPrompt(
+                    controller_manager.replay.current_step_id
+                )
+            )
+            selector_end.EnableFullSearchDisplay(
+                full_search_display_decks,
+                force_choose=force_choose,
+            )
 
     def GetAllLegalTargets(self, effect: 'Effect', referential_effect: 'Effect|None'=None, *, just_check: bool=False) -> Sequence['CardFace']:
         from game.operate.referential import Referential
@@ -108,9 +117,8 @@ class Selector(metaclass=Tracker.Meta):
     def GetTargetRange(self, effect: 'Effect', faces: Sequence['CardFace']) -> Tuple[int, int]|None:
         from game.effect.effect import EffectFailure
 
-        # A full-search viewer must still open when the search has no valid
-        # targets. It remains a successful zero-target choice so the searched
-        # deck can be inspected and shuffled normally.
+        # Legacy full-search confirmations allowed a recorded zero-target
+        # choice. New inspection-only viewers never enter this path.
         if self.force_choose and faces == []:
             return (0, 0)
 

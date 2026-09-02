@@ -34,6 +34,14 @@ class GameServerBase(WebServer):
         player_id = player_ids[0]
         return self.device_manager.controllers[player_id]
 
+    def set_full_search_preference(self, player_id: int, enabled: bool) -> None:
+        if player_id < 0 or player_id >= len(self.device_manager.controllers):
+            return
+        controller = self.device_manager.controllers[player_id]
+        controller.SetShowDeckDuringFullSearch(enabled)
+        if not enabled:
+            self.device_manager.AcknowledgeFullSearchPresentation(player_id)
+
     @property
     def controller_manager(self):
         controller = self.device_manager.controllers[0]

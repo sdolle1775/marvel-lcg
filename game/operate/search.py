@@ -358,8 +358,7 @@ class Search:
         # this option to the standard player and encounter deck parameters.
         full_search_decks: List[Deck] = []
         full_search_display_faces: List[CardFace] = []
-        if bool(by_effect.world.rule.show_deck_during_full_search) and \
-            most_top == None and \
+        if most_top == None and \
             not not_move:
             candidate_decks = Types.RemoveDuplicates([
                 face.card.area
@@ -372,6 +371,17 @@ class Search:
                     full_search_display_faces.extend(deck_faces)
                     if not deck.flags.is_discards:
                         full_search_decks.append(deck)
+
+        world = by_effect.world
+        scene = getattr(world, "scene", None)
+        controller_manager = getattr(world, "controller_manager", None)
+        legacy_full_search_prompt = bool(
+            scene and
+            controller_manager and
+            scene.UseLegacyFullSearchPrompt(
+                controller_manager.replay.current_step_id
+            )
+        )
 
         from game.operate.search_internal import SearchInternal
 
@@ -386,7 +396,10 @@ class Search:
             not_move=not_move,
             range=range,
             full_search_display_faces=full_search_display_faces,
-            full_search_decks=full_search_decks,
+            full_search_decks=(
+                full_search_decks if legacy_full_search_prompt else []
+            ),
+            force_full_search_prompt=legacy_full_search_prompt,
         )
 
     @staticmethod

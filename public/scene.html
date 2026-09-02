@@ -2311,8 +2311,10 @@ p:has(#timeout_text) {
                 }
             })
 
-            if( document.querySelector('#show_deck_during_full_search').checked ) {
-                new_game.rules.push('show_deck_during_full_search')
+            const showFullSearch = document.querySelector('#show_deck_during_full_search').checked
+            document.cookie = `btn_show_deck_during_full_search=${showFullSearch ? '1' : '0'}; max-age=3153600000; path=/`
+            for( let playerId = 0; playerId < heroes_jsons.length; playerId++ ) {
+                document.cookie = `btn_show_deck_during_full_search_${playerId}=${showFullSearch ? '1' : '0'}; max-age=3153600000; path=/`
             }
 
             if( !new_game.rules.includes('crisis_of_infinite_deadpools') ) {
@@ -2376,6 +2378,16 @@ p:has(#timeout_text) {
         }
 
         function doJoinGame(player_id) {
+            const showFullSearch = document.querySelector('#show_deck_during_full_search').checked
+            const cookieValue = showFullSearch ? '1' : '0'
+            document.cookie = `btn_show_deck_during_full_search=${cookieValue}; max-age=3153600000; path=/`
+            if( player_id == "hot_seat" ) {
+                for( let playerId = 0; playerId < 4; playerId++ ) {
+                    document.cookie = `btn_show_deck_during_full_search_${playerId}=${cookieValue}; max-age=3153600000; path=/`
+                }
+            } else {
+                document.cookie = `btn_show_deck_during_full_search_${player_id}=${cookieValue}; max-age=3153600000; path=/`
+            }
             const newUrl = getJoinGameUrl(player_id)
             window.open(newUrl)
         }

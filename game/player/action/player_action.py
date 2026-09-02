@@ -293,9 +293,8 @@ class PlayerAction:
                 not filtered_effects[0].this.card.area.flags.is_processing:
                 need_choose = True
 
-            # Full-deck searches are intentionally interactive even when a
-            # forced choice has zero or one legal target. The player may need
-            # to inspect the rest of the deck before resolving the search.
+            # Reproduce only the forced confirmations recorded by legacy
+            # saves. New full-deck inspection does not affect need_choose.
             if fallthrough_effect and fallthrough_effect.ability.selectors:
                 selector = fallthrough_effect.ability.selectors[0]
                 if selector and selector.force_choose:
@@ -311,6 +310,23 @@ class PlayerAction:
 
             def choice_one_effect(effect_list: Sequence['Effect']) -> Tuple['Effect|None', bool]:
                 if not need_choose:
+                    if fallthrough_effect and fallthrough_effect.ability.selectors:
+                        selector = fallthrough_effect.ability.selectors[0]
+                        if selector and \
+                            selector.selector_end.full_search_display_faces and \
+                            not selector.force_choose:
+                            player.GetController().PresentFullSearch(
+                                [
+                                    face.card.object_id
+                                    for face in selector.selector_end.full_search_display_faces
+                                ],
+                                [
+                                    face.card.object_id
+                                    for face in fallthrough_effect.context.all_legal_targets
+                                ],
+                                fallthrough_effect.context.target_range,
+                                "Search the full deck",
+                            )
                     return fallthrough_effect, False
                     # if not fallthrough_effect or \
                     #     fallthrough_effect.is_forced or \

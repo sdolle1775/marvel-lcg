@@ -1,0 +1,19 @@
+/*
+ * Automatic full-search inspection intentionally uses the standard deck,
+ * prompt, target-highlight, hover-preview, and OK-button styles. This class is
+ * only a client-side interaction marker; it does not introduce another modal.
+ */
+body.full-search-presentation-active .full-search-inspection-deck .card {
+    cursor: pointer;
+}
+
+/*
+ * The scaled game camera is its own stacking context, so its child decks cannot
+ * individually rise above the prompt element outside it. Suppress the prompt
+ * only while a searched deck is expanded; clicking away minimizes the deck and
+ * immediately reveals the prompt again.
+ */
+body:has(#camera .deck.clicked:has(.being-searching)) #prompt-box-container {
+    opacity: 0 !important;
+    pointer-events: none;
+}

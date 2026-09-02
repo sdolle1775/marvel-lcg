@@ -1,4 +1,4 @@
-import { ButtonSetting, Setting } from './settings.js'
+import { ButtonSetting, ClientPreferences, Setting } from './settings.js'
 import { Game } from './game.js'
 import { Cards } from './cards.js'
 import { WorldDescriptor } from './descriptor.js'
@@ -14,6 +14,7 @@ import { CardAnimation } from './card_animation.js'
 import { Lib } from './lib.js'
 import { ErrorDialog } from './error_dialog.js'
 import { MouseSync } from './mouse.js'
+import { FullSearchPresentation } from './full_search_presentation.js'
 
 function showRes() {
     let resource_div = ""
@@ -56,6 +57,7 @@ export class Client {
     
             WebSocketHandler.ws.onopen = () => {
                 UI.onConnected()
+                WebSocketHandler.ws?.send(ClientPreferences.connectionSettings())
                 Client.doSyncGame();
             };
     
@@ -121,6 +123,16 @@ export class Client {
         Client.doConnect()
     }
 
+    static async syncFullSearchPreference(playerId: number, enabled: boolean) {
+        await fetch(`client_settings?p=${playerId}`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                show_deck_during_full_search: enabled,
+            }),
+        })
+    }
+
     private static tryGetAsk() {
         if( Game.asking_players.length > 0 ) {
             if( Setting.is_watch ) {
@@ -151,6 +163,7 @@ export class Client {
             render_id: number;
             game_id: number;
             ask_players: number[];
+            full_search_presentation_players: number[];
             remaining_time: number;
             max_timeout: number;
             notify_texts: NotifyDescriptor[];
@@ -159,6 +172,7 @@ export class Client {
             debug_message: string;
             player_id: number;
             total_players: number;
+            show_deck_during_full_search: boolean;
             // is_skipping: boolean;
         }
 
@@ -175,6 +189,7 @@ export class Client {
             render_id           : original_data['render_id'],
             game_id             : original_data['game_id'],
             ask_players         : original_data['ask_players'],
+            full_search_presentation_players: original_data['full_search_presentation_players'] ?? [],
             remaining_time      : original_data['remaining_time'],
             max_timeout         : original_data['max_timeout'],
             notify_texts        : original_data['notify_texts'].map((y: string) => notifyData(JSON.parse(y))),
@@ -183,6 +198,7 @@ export class Client {
             debug_message       : original_data['debug_message'],
             player_id           : original_data['player_id'],
             total_players       : original_data['total_players'],
+            show_deck_during_full_search: original_data['show_deck_during_full_search'] ?? false,
             // is_skipping      : original_data['is_skipping'],
         };
 
@@ -196,6 +212,12 @@ export class Client {
             Game.current_step_id == data.current_step_id &&
             Client.last_turn_id == data.render_id &&
             Lib.array.equals(Game.asking_players, data.ask_players) &&
+            Lib.array.equals(
+                Game.full_search_presentation_players,
+                data.full_search_presentation_players,
+            ) &&
+            data.full_search_presentation_players.length == 0 &&
+            ClientPreferences.showDeckDuringFullSearch(data.player_id) == data.show_deck_during_full_search &&
             // Game.asking_players == data.ask_players &&
             data.notify_texts.length == 0
         ) {
@@ -212,6 +234,19 @@ export class Client {
         UI.setDebugMessage('debug', data.debug_message)
 
         Game.asking_players = data.ask_players
+        Game.full_search_presentation_players = data.full_search_presentation_players
+        const fullSearchPreferenceChanged = (
+            ClientPreferences.showDeckDuringFullSearch(data.player_id) !=
+            data.show_deck_during_full_search
+        )
+        ClientPreferences.setShowDeckDuringFullSearch(
+            data.player_id,
+            data.show_deck_during_full_search,
+        )
+        FullSearchPresentation.closeIfInactive(
+            data.full_search_presentation_players,
+        )
+        Button.updateFullSearchButton()
         console.log(`render: ${data['render_id']} game_id: ${data['game_id']} ask: ${Game.asking_players}`)
         if( data.render_id == -1 ) {
             UI.prompt.setPromptGameOver()
@@ -295,9 +330,26 @@ export class Client {
             }
         }
 
+        if( fullSearchPreferenceChanged && Game.world_descriptor ) {
+            Cards.render.printCards()
+            Effect.updateHighLight()
+        }
+
         if( Game.asking_players.length > 0 ) {
             UI.updateTimerBar(remaining_time, max_timeout, Game.world_descriptor.round_id, Game.current_step_id)
             Client.tryGetAsk()
+        }
+        if( Game.full_search_presentation_players.length > 0 && !Setting.is_watch ) {
+            let presentationPlayer = Setting.player_id
+            if( Setting.is_hot_seat ) {
+                presentationPlayer = Game.full_search_presentation_players[0]
+                Setting.player_id = presentationPlayer
+                UI.focusOnPlayer(presentationPlayer)
+                Button.updateFullSearchButton()
+            }
+            if( Game.full_search_presentation_players.includes(presentationPlayer) ) {
+                FullSearchPresentation.fetch(presentationPlayer)
+            }
         }
     }
 
@@ -430,21 +482,22 @@ export class Client {
                             const allHandCards = document.querySelector(`#all-hand-cards`)!
                             const alwaysShowMinions = document.querySelector(`#always-show-minions-belong`)!
 
+                            // Hand filtering and pinning are useful in solo play
+                            // too. Only controls that switch or combine players
+                            // are multiplayer-specific.
+                            playersPin.classList.remove('hide');
+                            hideNoActionCards.classList.remove('hide')
+                            allHandCards.classList.remove('hide');
+
                             if( Game.total_players > 1 ) {
-                                playersPin.classList.remove('hide');
                                 if( !Setting.is_hot_seat ) {
                                     playersPin.classList.add('clicked');
                                 }
                                 playersAllInOne.classList.remove('hide');
-                                hideNoActionCards.classList.remove('hide')
-                                allHandCards.classList.remove('hide');
                                 alwaysShowMinions.classList.remove('hide')
                                 // playersAllInOneHandCards.classList.remove('hide');
                             } else {
-                                playersPin.classList.add('hide');
                                 playersAllInOne.classList.add('hide');
-                                hideNoActionCards.classList.add('hide')
-                                allHandCards.classList.add('hide');
                                 alwaysShowMinions.classList.add('hide')
                                 // playersAllInOneHandCards.classList.add('hide');
                             }
@@ -574,6 +627,7 @@ export class Client {
                         else if( !Game.asking_players.includes(Game.forced_on_player) ) {
                             UI.focusOnPlayer(Game.asking_players[0])
                         }
+                        Button.updateFullSearchButton()
                     }
 
                     // effect

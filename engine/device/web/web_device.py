@@ -46,6 +46,37 @@ class WebDevice(OutputDevice, InputDevice):
         # JobManager.AddJob(run_tasks, total_players, name="GetInput")
         return False
 
+    @override
+    def PresentFullSearch(
+        self,
+        card_ids: List[int],
+        legal_target_ids: List[int],
+        target_range: Tuple[int, int],
+        prompt_text: str,
+    ) -> None:
+        def is_ready() -> bool:
+            clients = self.manager_web.client_manager.GetClients(self.player_id)
+            if not clients:
+                return True
+            self.manager_web.httpds[-1].WebSendRender(
+                self.player_id,
+                "PresentFullSearch",
+            )
+            return False
+
+        self.manager.DoPresentFullSearch(
+            self.player_id,
+            card_ids,
+            legal_target_ids,
+            target_range,
+            prompt_text,
+            is_ready,
+        )
+        self.manager_web.httpds[-1].WebSendRender(
+            self.player_id,
+            "PresentFullSearchDone",
+        )
+
     ################################################################################
     #
     @override

@@ -121,6 +121,10 @@
     align-content: center;
 }
 
+#right-side-bar > #show-deck-during-full-search-btn {
+    width: 100%;
+}
+
 /* #left-side-bar .active {
     background-color: rgb(92, 23, 23);
 } */

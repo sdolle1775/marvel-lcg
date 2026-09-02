@@ -4,10 +4,18 @@ import { Cards } from './cards.js'
 import { UI } from './ui.js'
 import { BtnOk } from './btn_ok.js'
 
+export type SelectStepValue = 'cost' | 'target' | 'effect' | 'card'
+
 ////////////////////////////////////////////////////////////////////////////////
 //
 export class SelectStep {
-    private static step: 'cost' | 'target' | 'effect' | 'card' = 'card'
+    private static step: SelectStepValue = 'card'
+    static getStep(): SelectStepValue {
+        return SelectStep.step
+    }
+    static restoreStep(step: SelectStepValue): void {
+        SelectStep.step = step
+    }
     static isCost() {
         return SelectStep.step == 'cost'
     }

@@ -5,6 +5,7 @@ class SynchronizationNotifier:
         self.connect    = Condition("Connect")
         self.sync       = Condition("Sync")
         self.input      = Condition("Input")
+        self.presentation = Condition("Presentation")
 
         self.should_exit_wait = False
         self.has_client_input = False
@@ -13,9 +14,13 @@ class SynchronizationNotifier:
         self.has_client_input = True
         self.input.NotifyAll()
 
+    def WhenPresentation(self):
+        self.presentation.NotifyAll()
+
     def NotifyAll(self):
         self.sync.NotifyAll()
         self.input.NotifyAll()
+        self.presentation.NotifyAll()
         self.connect.NotifyAll()
 
     def ExitWait(self):

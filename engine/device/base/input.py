@@ -11,6 +11,17 @@ class InputDevice(Device):
     def IsInputReady(self) -> bool:
         ...
 
+    def PresentFullSearch(
+        self,
+        card_ids: List[int],
+        legal_target_ids: List[int],
+        target_range: Tuple[int, int],
+        prompt_text: str,
+    ) -> None:
+        # Non-web devices have no presentation layer. This deliberately does
+        # not enter the gameplay input/replay pipeline.
+        return
+
     @final
     def WaitConnect(self) -> None:
         self.manager.DoWaitConnect(self.player_id, self.IsConnect)

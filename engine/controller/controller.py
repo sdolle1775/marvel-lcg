@@ -13,6 +13,10 @@ from game.exceptions import *
 CATEGORY_NAME = "CONTROLLER"
 
 @dataclass
+class ControllerPreferences:
+    show_deck_during_full_search: bool = False
+
+@dataclass
 class ChoiceOneOverride:
     """Alternate rendered identities for timing-window effect candidates."""
 
@@ -27,11 +31,35 @@ class Controller:
 
     def __init__(self, player_id: int, devices: 'DeviceManager', manager: 'ControllerManager'):
         self.player_id = player_id
+        self.preferences = ControllerPreferences()
 
         self.manager = manager
         self.render, self.input = devices.CreateDevices(self)
 
         devices.AddController(self)
+
+    def SetShowDeckDuringFullSearch(self, enabled: bool) -> None:
+        self.preferences.show_deck_during_full_search = enabled
+
+    def PresentFullSearch(
+        self,
+        card_ids: Sequence[int],
+        legal_target_ids: Sequence[int],
+        target_range: Tuple[int, int],
+        prompt_text: str,
+    ) -> None:
+        replay = self.manager.replay
+        if not self.preferences.show_deck_during_full_search or \
+            self.manager.skip.is_skipping or \
+            replay.is_replay:
+            return
+
+        self.input.PresentFullSearch(
+            list(card_ids),
+            list(legal_target_ids),
+            target_range,
+            prompt_text,
+        )
 
     @property
     def game(self):

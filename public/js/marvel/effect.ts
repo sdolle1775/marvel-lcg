@@ -1,5 +1,5 @@
 import { Lib } from './lib.js'
-import { ButtonSetting, Setting } from './settings.js'
+import { ButtonSetting, ClientPreferences, Setting } from './settings.js'
 import { Game } from './game.js'
 import { UI } from './ui.js'
 import { SelectStep } from './select.js'
@@ -25,6 +25,14 @@ export class Effect {
     private static available_card_bind_object_ids: number[] = [] // Which CardFace.cards did the effects bind with?
 
     static response_json_ask: AskOptionPayload
+
+    static getFullSearchDisplayTargets(): number[] {
+        const playerId = Effect.select_effect_obj.bind_player_id ?? Setting.player_id
+        if( !ClientPreferences.showDeckDuringFullSearch(playerId) ) {
+            return []
+        }
+        return Effect.select_effect_obj.full_search_display_targets
+    }
     static select_effect_obj = new EffectDescriptor({})
 
     static is_in_event: 'response' | 'interrupt' | 'in_turn' | 'asking' | '' = ''
@@ -62,7 +70,7 @@ export class Effect {
         let changed_search_target: number[] = []
         const search_display_targets = new Set([
             ...Effect.select_effect_obj.all_legal_targets,
-            ...Effect.select_effect_obj.full_search_display_targets,
+            ...Effect.getFullSearchDisplayTargets(),
         ])
         for( const card_div of document.querySelectorAll<HTMLElement>('.card') ) {
             const object_id = Number(card_div.dataset.id!)
@@ -748,7 +756,7 @@ export class Effect {
                         can_select_all_as_target = false
                     }
 
-                    if( Effect.select_effect_obj.full_search_display_targets.length == 0 &&
+                    if( Effect.getFullSearchDisplayTargets().length == 0 &&
                         (can_select_all_as_target || ButtonSetting.auto_target_forced) &&
                         !ButtonSetting.is_replay &&
                         ButtonSetting.auto_target )

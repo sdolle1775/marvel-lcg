@@ -166,6 +166,7 @@ export class Game {
     // static current_player = 0 // 0, 1, 2, 3
     static total_players = 1
     static asking_players: number[] = [] // 0,1,2,3
+    static full_search_presentation_players: number[] = []
     static current_step_id = -1
 
     static world_descriptor: WorldDescriptor

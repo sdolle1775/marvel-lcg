@@ -13,6 +13,13 @@ class ClientManager:
         def __init__(self, player_ids: List[int], url: str, ws: 'web.WebSocketResponse', id: int) -> None:
             self.id = id
             self.player_ids: Final = player_ids
+            # A hotseat client controls every seat, including players added by a
+            # new game after this websocket was opened.  player_ids is only a
+            # snapshot of the controllers that existed at connection time.
+            self.is_hot_seat: Final = any(
+                part.partition('=')[0] == 'hot_seat'
+                for part in url.split('&')
+            )
             self.states: Literal["busy", "idle"] = "idle"
             self.url = url
             self.condition = Condition("Client")
@@ -50,7 +57,7 @@ class ClientManager:
     def GetClients(self, player_id: int):
         clients: List[ClientManager.ClientInfo] = []
         for client in self.connected_clients:
-            if player_id in client.player_ids:
+            if client.is_hot_seat or player_id in client.player_ids:
                 clients.append(client)
         return clients
 

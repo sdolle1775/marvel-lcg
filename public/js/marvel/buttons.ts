@@ -1,5 +1,5 @@
 import { Lib } from './lib.js'
-import { Setting, ButtonSetting } from './settings.js'
+import { Setting, ButtonSetting, ClientPreferences } from './settings.js'
 import { Game } from './game.js'
 import { Cards } from './cards.js'
 import { UI } from './ui.js'
@@ -16,6 +16,7 @@ import { BtnOk } from './btn_ok.js'
 import { CardAnimation } from './card_animation.js'
 import { ErrorDialog } from './error_dialog.js'
 import { Command } from './command.js'
+import { FullSearchPresentation } from './full_search_presentation.js'
 
 ////////////////////////////////////////////////////////////////////////////////
 //
@@ -23,6 +24,7 @@ export class Button{
     static goto_id = document.querySelector("#goto-id") as HTMLInputElement
     static goto_id_value = Button.goto_id?.previousElementSibling as HTMLOutputElement
     private static is_posting = false
+    private static full_search_button: HTMLButtonElement|undefined
 
     static doToggleHistory() {
         HistoryLog.toggle()
@@ -43,6 +45,9 @@ export class Button{
     }
 
     static doBtnOk() {
+        if( FullSearchPresentation.dismissIfActive() ) {
+            return
+        }
         if( Game.is_lost_connect || Button.is_posting || BtnOk.btn_ok_div.disabled || SelectStep.isCard() ) {
             return
         }
@@ -105,6 +110,11 @@ export class Button{
     }
 
     static doPost(press_by_btn = true) {
+        // Automatic full-search inspection uses the real selector client-side,
+        // but its selections must never enter the gameplay/replay input route.
+        if( FullSearchPresentation.isActive() ) {
+            return
+        }
         if( Game.is_lost_connect ) {
             return
         }
@@ -180,7 +190,8 @@ export class Button{
 
             Button.is_posting = true
             Button.clean()
-            let text = `post?p=${bind_player_id}`
+            let showFullSearch = ClientPreferences.showDeckDuringFullSearch(bind_player_id) ? 1 : 0
+            let text = `post?p=${bind_player_id}&show_deck_during_full_search=${showFullSearch}`
             console.log(text)
             ajax.open("POST", text, true);
             ajax.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
@@ -458,6 +469,7 @@ export class Button{
 
     static focusPlayer(num: number) {
         UI.focusOnPlayer(num)
+        Button.updateFullSearchButton()
     }
 
     // static toggleAllInOneHandCards(e: HTMLButtonElement) {
@@ -748,6 +760,21 @@ export class Button{
         })
 
         const parent_div_right = document.getElementById('right-side-bar') as HTMLElement
+        Button.full_search_button = Button.createButtonBase(parent_div_right, {
+            text: "Full Search",
+            id: "show-deck-during-full-search-btn",
+            onClick: () => {
+                const playerId = Button.getFullSearchPreferencePlayerId()
+                const enabled = !ClientPreferences.showDeckDuringFullSearch(playerId)
+                ClientPreferences.setShowDeckDuringFullSearch(playerId, enabled)
+                Button.updateFullSearchButton()
+                FullSearchPresentation.onPreferenceChanged(playerId, enabled)
+                Cards.render.printCards()
+                Effect.updateHighLight()
+                Client.syncFullSearchPreference(playerId, enabled)
+            },
+        })
+        Button.updateFullSearchButton()
         Button.createButtonBase(parent_div_right, {
             text: "Log",
             onClick: () => {Button.doToggleHistory()}
@@ -805,6 +832,28 @@ export class Button{
     }
 
 
+    static updateFullSearchButton() {
+        const button = Button.full_search_button
+        if( !button ) {
+            return
+        }
+        const playerId = Button.getFullSearchPreferencePlayerId()
+        const enabled = ClientPreferences.showDeckDuringFullSearch(playerId)
+        button.classList.toggle('clicked', enabled)
+        const playerLabel = Setting.is_hot_seat ? `P${playerId + 1} ` : ''
+        button.innerHTML = `${playerLabel}Full Search: ${enabled ? 'On' : 'Off'}`
+    }
+
+    static getFullSearchPreferencePlayerId(): number {
+        if( Setting.is_hot_seat &&
+            Game.forced_on_player >= 0 &&
+            Game.forced_on_player < Game.total_players
+        ) {
+            return Game.forced_on_player
+        }
+        return Setting.player_id
+    }
+
     static createButtonBase(parent: HTMLElement, options: {
         names?: string[];
         text?: string;
@@ -814,7 +863,7 @@ export class Button{
         onClick?: (e: HTMLElement) => void;
         callWhenInit?: boolean;
         cookie_name?: string;
-    }) {
+    }): HTMLButtonElement {
         const { names=[], text="", class_name, id="", property, onClick, callWhenInit=false, cookie_name="" } = options;
         const button = document.createElement('button');
         button.id = id
@@ -875,6 +924,7 @@ export class Button{
         }
 
         parent.appendChild(button);
+        return button
     }
 }
 

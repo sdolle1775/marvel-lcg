@@ -59,6 +59,11 @@ class GameServerSocket(GameServerBase):
                 render_id           = world.render.last_render_id if world else 0,
                 game_id             = game.session.game_id,
                 ask_players         = self.device_manager.asking_players,
+                full_search_presentation_players = (
+                    [player_id]
+                    if player_id in self.device_manager.full_search_presentations
+                    else []
+                ),
                 remaining_time      = remaining_time,
                 max_timeout         = self.device_manager.timer.max_timeout,
                 notify_texts        = notify_texts,
@@ -66,7 +71,8 @@ class GameServerSocket(GameServerBase):
                 current_step_id     = game.controller_manager.replay.current_step_id,
                 max_replay_step_id  = game.controller_manager.replay.GetReplayOperationLen(),
                 player_id           = player_id,
-                total_players       = world.started_player_num if world else 0
+                total_players       = world.started_player_num if world else 0,
+                show_deck_during_full_search = self.device_manager.controllers[player_id].preferences.show_deck_during_full_search,
                 # game.controller_manager.skip.is_skipping,
             )
             try:
@@ -122,6 +128,19 @@ class GameServerSocket(GameServerBase):
                         
                         # Broadcast the updated positions to all clients
                         await self.BroadcastMousePositions()
+                    elif data.startswith('{'):
+                        client_data = Json.Loads(data)
+                        settings = client_data.get('client_settings', {})
+                        full_search_settings = settings.get(
+                            'show_deck_during_full_search',
+                            {},
+                        )
+                        for player_id_text, enabled in full_search_settings.items():
+                            player_id = int(player_id_text)
+                            if player_id not in player_ids:
+                                continue
+                            self.set_full_search_preference(player_id, bool(enabled))
+                            self.WebSendRender(player_id, "ClientSettings")
                     elif data.startswith('Connected'):
                         if len(player_ids) > 0:
                             self.WebSendRender(player_ids[0], "websocket_handler")
@@ -130,7 +149,14 @@ class GameServerSocket(GameServerBase):
         except Exception as exc:
             Log.FailedTrace(CATEGORY_NAME, exc)
         finally:
-            self.device_manager.client_manager.Remove(ws)
+            if any(
+                client.ws == ws
+                for client in self.device_manager.client_manager.connected_clients
+            ):
+                self.device_manager.client_manager.Remove(ws)
+            # Wake any presentation-only wait so a disconnected searching
+            # player can never stall the game indefinitely.
+            self.device_manager.notify.WhenPresentation()
 
         return ws
 

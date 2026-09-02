@@ -24,7 +24,7 @@ METADATA_KEY_BOOL = Literal[
 ]
 
 METADATA_KEY_INT = Literal[
-    "seed"
+    "seed", "legacy_full_search_prompt_end_step"
 ]
 
 METADATA_KEY_STR = Literal[
@@ -181,6 +181,7 @@ class Scene:
     # Call follow `Json.LoadAs` 
     def UpdateVersion(self):
         self.campaign.UpdateVersion()
+        self.MigrateFullSearchDisplayRule()
         self.MigrateAttachedHealthFlip()
         self.MigrateAttachedHealthSwap()
         self.MigrateGodOfLiesShatterTotal()
@@ -231,6 +232,27 @@ class Scene:
 
         del self.campaign.modular_sets
         self.rules = list(sorted(set(self.rules)))
+
+    def MigrateFullSearchDisplayRule(self) -> None:
+        if "show_deck_during_full_search" not in self.rules:
+            return
+        if "legacy_full_search_prompt_end_step" in self.metadata:
+            return
+
+        # The original option inserted confirmation choices into replay
+        # history. Preserve that prompt topology only for the legacy portion
+        # of an existing save; later searches use presentation-only previews.
+        self.SetMetadataInt(
+            "legacy_full_search_prompt_end_step",
+            len(self.inputs),
+        )
+
+    def UseLegacyFullSearchPrompt(self, current_step_id: int) -> bool:
+        if "show_deck_during_full_search" not in self.rules:
+            return False
+        return current_step_id < self.GetMetadataInt(
+            "legacy_full_search_prompt_end_step"
+        )
 
     def MigrateAttachedHealthFlip(self) -> None:
         if ATTACHED_HEALTH_FLIP_RULE in self.rules:
