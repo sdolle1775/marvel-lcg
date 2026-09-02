@@ -778,8 +778,8 @@ class SenderDamage:
         def IsBePrevent(self) -> bool:
             return self.be_prevent
 
-        def IncreaseDamage(self, value: int, by_effect: 'Effect'):
-            if self.IsOverkill():
+        def IncreaseDamage(self, value: int, by_effect: 'Effect', *, include_overkill: bool=False):
+            if not include_overkill and self.IsOverkill():
                 return
             assert value >= 0
             from game.message import Message

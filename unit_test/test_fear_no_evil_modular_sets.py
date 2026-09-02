@@ -93,10 +93,11 @@ class TestFearNoEvilModularSetRegistration(unittest.TestCase):
 
         for card_id in ("60177", "60178", "60179"):
             self.assertEqual(papers[card_id]["desc"]["Uses"], "2,civilian")
+            self.assertEqual(papers[card_id]["desc"]["Crisis"], "1")
             self.assertEqual(papers[card_id]["traits"], ["DISASTER"])
         self.assertEqual(
             papers["60180"]["desc"],
-            {"StartingThreat": "1*", "Hinder": "2*", "Crisis": "1", "Boost": "2"},
+            {"StartingThreat": "1*", "Hinder": "2*", "Hazard": "1", "Boost": "2"},
         )
         self.assertEqual(papers["60181"]["desc"]["Peril"], "1")
 
@@ -118,6 +119,25 @@ class TestFearNoEvilModularSetRegistration(unittest.TestCase):
         self.assertEqual(papers["60202"]["desc"]["Vulnerable"], "1")
         self.assertEqual(papers["60203"]["desc"]["Vulnerable"], "1")
         self.assertEqual(papers["60204"]["desc"]["StartingThreat"], "3*")
+
+    def test_disasters_icons_initialize_on_runtime_faces(self):
+        world = MagicMock()
+        world.GetPlayerNumIcon.return_value = 1
+
+        for card_id in ("60177", "60178", "60179"):
+            with self.subTest(card_id=card_id):
+                environment = CardFactory.CreateFace(
+                    CardsDB.FindCardPaper(card_id),
+                    world,
+                )
+                self.assertEqual(environment.printed_crisis, 1)
+
+        collapsing_bridge = CardFactory.CreateFace(
+            CardsDB.FindCardPaper("60180"),
+            world,
+        )
+        self.assertEqual(collapsing_bridge.printed_hazard, 1)
+        self.assertEqual(collapsing_bridge.printed_crisis, 0)
 
     def test_cards_and_set_info_checksums_are_current(self):
         for filename in ("cards.json", "sets_info.json"):

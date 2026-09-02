@@ -6,7 +6,7 @@ from game.player import *
 from cards.paper import Paper
 
 @final
-class Environment(HasAccelerationIcon, HasAmplify, HasHazard, HasUses, CanPlaceCounter, HasPermanent, HasSetup, EncounterNonVillainCard, FinalType):
+class Environment(HasAccelerationIcon, HasAmplify, CanCrisis, HasHazard, HasUses, CanPlaceCounter, HasPermanent, HasSetup, EncounterNonVillainCard, FinalType):
     @override
     def __init__(self, paper: 'Paper') -> None:
         super().__init__(paper)

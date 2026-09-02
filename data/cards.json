@@ -63893,7 +63893,7 @@
             "type": "Environment",
             "name": "Mystic Incursion",
             "subtitle": "",
-            "desc": {"Boost": "2", "Uses": "2,civilian"},
+            "desc": {"Boost": "2", "Uses": "2,civilian", "Crisis": "1"},
             "traits": ["DISASTER"],
             "set_name": "Disasters",
             "text": "Uses (2 civilian counters).\n<b>Hero Action</b>: Spend 2 [wild] resources or exhaust a hero or ally you control → remove 1 civilian counter from here (2 counters instead if you exhausted a [[MYSTIC]] character)."
@@ -63903,7 +63903,7 @@
             "type": "Environment",
             "name": "Sinking Ferry",
             "subtitle": "",
-            "desc": {"Boost": "2", "Uses": "2,civilian"},
+            "desc": {"Boost": "2", "Uses": "2,civilian", "Crisis": "1"},
             "traits": ["DISASTER"],
             "set_name": "Disasters",
             "text": "Uses (2 civilian counters).\n<b>Hero Action</b>: Spend 2 [energy] resources or exhaust a hero or ally you control → remove 1 civilian counter from here (2 counters instead if you exhausted an [[AERIAL]] character)."
@@ -63913,7 +63913,7 @@
             "type": "Environment",
             "name": "Towering Inferno",
             "subtitle": "",
-            "desc": {"Boost": "2", "Uses": "2,civilian"},
+            "desc": {"Boost": "2", "Uses": "2,civilian", "Crisis": "1"},
             "traits": ["DISASTER"],
             "set_name": "Disasters",
             "text": "Uses (2 civilian counters).\n<b>Hero Action</b>: Spend 2 [physical] resources or exhaust a hero or ally you control → remove 1 civilian counter from here (2 counters instead if you exhausted a character that has a tough status card)."
@@ -63923,7 +63923,7 @@
             "type": "SideScheme",
             "name": "Collapsing Bridge",
             "subtitle": "",
-            "desc": {"StartingThreat": "1*", "Hinder": "2*", "Crisis": "1", "Boost": "2"},
+            "desc": {"StartingThreat": "1*", "Hinder": "2*", "Hazard": "1", "Boost": "2"},
             "traits": [],
             "set_name": "Disasters",
             "text": "Hinder 2 per player.\n<b>Forced Response</b>: After any amount of threat is removed from Collapsing Bridge, place 1 threat here."
@@ -64289,5 +64289,5 @@
             "text": "Victory -1.\n<b>Forced Response</b>: After you reveal a side scheme, remove all damage from here and flip this card."
         }
     ],
-    "checksum": "ad89809e15fb584daa7b6ee4d2f15a54b99c44c7f3195fa3962af13c161378bd"
+    "checksum": "06c04c9d377776bcf8d66b884b6e2512e1a9855a49fdaaf6a907a7f6e760a7f3"
 }

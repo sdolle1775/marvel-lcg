@@ -527,7 +527,7 @@ class AbilityFactory(AbilityFactorySetup, AbilityFactoryTurnPhase, AbilityFactor
             ability_type,
             which_unit,
             lambda effect, message:
-                message.IncreaseDamage(increase, effect),
+                message.IncreaseDamage(increase, effect, include_overkill=True),
             is_from_attack=is_from_attack,
         )
 
