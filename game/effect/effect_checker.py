@@ -82,11 +82,14 @@ class EffectChecker:
         if effect.world.rule.v16_confuse_stun:
             # A stunned character can attempt to attack or use an attack ability even if it has no valid target for an attack.
             # Only for play cards, we cannot use `is_like_xxx` here
-            status_cancels_ability = (
-                ability.is_label_attack and effect.initiator.GetRoleCharacter().IsStunned()
-            ) or (
+            # Special abilities triggered via WhenResolveSpecialAbility (e.g. Wakanda Forever!) are card effects,
+            # not basic ATK/THW actions, so stun/confuse must not waive their target requirements.
+            is_special_ability_trigger = isinstance(effect.bind_message, Message.WhenResolveSpecialAbility)
+            status_cancels_ability = not is_special_ability_trigger and (
+                (ability.is_label_attack and effect.initiator.GetRoleCharacter().IsStunned())
+                or
                 # A confused character can attempt to thwart or use a thwart ability even if it has no valid target for a thwart
-                ability.is_label_thwart and effect.initiator.GetRoleCharacter().IsConfused()
+                (ability.is_label_thwart and effect.initiator.GetRoleCharacter().IsConfused())
             )
             if status_cancels_ability and not for_second_target:
                 # A status card can waive the labeled ability's target requirement,
