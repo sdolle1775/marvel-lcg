@@ -64288,7 +64288,7 @@
             "set_name": "Fear No Evil Campaign",
             "text": "Victory -1.\n<b>Forced Response</b>: After you reveal a side scheme, remove all damage from here and flip this card."
         },
-                {
+        {
             "card_id": "61028",
             "type": "PlayerSideScheme",
             "name": "* Second Chance",
@@ -64297,9 +64297,33 @@
             "traits": [],
             "set_name": "",
             "text": "Victory 0.\n<b>When Defeated</b>: Each player may shuffle all of their identity-specific cards from their discard pile into their deck."
-        }
-        ,
-                {
+        },
+        {
+            "card_id": "62014",
+            "type": "Ally",
+            "name": "* Valkyrie",
+            "subtitle": "Brunnhilde",
+            "desc": {"Cost": "3", "HP": "3", "ATK": "2*", "THW": "1*", "RES": "B", "Class": "Leadership", "Toughness": "1"},
+            "traits": ["ASGARD", "DEFENDER"],
+            "set_name": "",
+            "text": "Toughness.\n<b>Interrupt</b>: When another ally would be defeated, discard Valkyrie (from play) \u2192 instead heal that ally until they have 1 hit point remaining."
+        },
+        {
+            "card_id": "62019",
+            "type": "Support",
+            "name": "Righteous Purpose",
+            "subtitle": "",
+            "desc": {
+                "Cost": "2",
+                "RES": "Y",
+                "Class": "Leadership",
+                "MaxPerUnit": "1"
+            },
+            "traits": ["MAXIM"],
+            "set_name": "",
+            "text": "Play under any player's control. Max 1 per player.\nEach character you control that has exactly 1 hit point remaining gets +2 THW and +2 ATK."
+        },
+        {
             "card_id": "62022",
             "type": "Event",
             "name": "Dynamic Duo",
