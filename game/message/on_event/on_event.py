@@ -60,7 +60,7 @@ class OnEvent:
             return [
                 Ability(
                     ability_type,
-                    Message.WhenCardEnterPlay,
+                    Message.WhenCardEnterPlay|Message.WhenCardFaceActivated,
                     [
                         lambda effect, message:
                             Condition.CheckWhichCard(self.which_card, message.trigger, effect),
@@ -84,7 +84,7 @@ class OnEvent:
             return [
                 Ability(
                     ability_type,
-                    Message.AfterCardEnterPlay,
+                    Message.AfterCardEnterPlay|Message.AfterCardFaceActivated,
                     [
                         lambda effect, message:
                             Condition.CheckWhichCard(self.which_card, message.trigger, effect),
@@ -159,7 +159,7 @@ class OnEvent:
                 ),
                 Ability(
                     ability_type,
-                    Message.WhenCardLeavePlay|Message.WhenCardEnterPlay,
+                    Message.WhenCardLeavePlay|Message.WhenCardEnterPlay|Message.WhenCardFaceActivated,
                     [
                         check_card_in_play,
                         condition
@@ -282,7 +282,7 @@ class OnEvent:
                 ),
                 Ability(
                     ability_type,
-                    Message.WhenCardLeavePlay|Message.WhenCardEnterPlay,
+                    Message.WhenCardLeavePlay|Message.WhenCardEnterPlay|Message.WhenCardFaceActivated,
                     [
                         check_card_in_play,
                         condition
@@ -490,7 +490,7 @@ class OnEvent:
             ),
             Ability(
                 ability_type,
-                Message.AfterCardLeavePlay|Message.AfterCardEnterPlay,
+                Message.AfterCardLeavePlay|Message.AfterCardEnterPlay|Message.AfterCardFaceActivated,
                 [
                     check_game_area,
                     condition,
@@ -648,7 +648,7 @@ class OnEvent:
             )
 
     class Trait(TemplateTrigger):
-        MESSAGE_TYPE = Message.AfterCardGainTrait|Message.AfterCardLoseTrait|Message.AfterCardLeavePlay|Message.AfterCardEnterPlay
+        MESSAGE_TYPE = Message.AfterCardGainTrait|Message.AfterCardLoseTrait|Message.AfterCardLeavePlay|Message.AfterCardEnterPlay|Message.AfterCardFaceActivated
 
         def __init__(self, which_card: CardType|Literal["YouControlCharacter"]) -> None:
             from game.selector import Select
@@ -667,7 +667,7 @@ class OnEvent:
             )
 
     class Threat(TemplateTrigger):
-        MESSAGE_TYPE = Message.AfterSchemePlaceThreat|Message.AfterSchemeRemoveThreat|Message.AfterCardLeavePlay|Message.AfterCardEnterPlay
+        MESSAGE_TYPE = Message.AfterSchemePlaceThreat|Message.AfterSchemeRemoveThreat|Message.AfterCardLeavePlay|Message.AfterCardEnterPlay|Message.AfterCardFaceActivated
 
         def __init__(self, which_card: CardType) -> None:
             self.which_card: Final = which_card
@@ -718,7 +718,7 @@ class OnEvent:
 
     # Change "form", not hero/identity form
     class Form(TemplateTrigger):
-        MESSAGE_TYPE = Message.AfterUnitChangeForm|Message.AfterCardLeavePlay|Message.AfterCardEnterPlay
+        MESSAGE_TYPE = Message.AfterUnitChangeForm|Message.AfterCardLeavePlay|Message.AfterCardEnterPlay|Message.AfterCardFaceActivated
 
         def __init__(self, which_card: CardType) -> None:
             from game.card.face.card_type import Upgrade

@@ -19,11 +19,12 @@ class HasUses(CanPlaceCounter, HasAttribute):
     @override
     def OnWhenCardEnterPlay(self, message: 'Message.WhenCardEnterPlay') -> bool:
         if super().OnWhenCardEnterPlay(message):
-            if self.uses_counters:
-                if self.card.face == self: # Fix "27174a,27174b"
-                    name = self.uses_counter_name
-                    counter = self.uses_counters
-                    self.components.counter.PlaceCounters(counter, name)
+            # Setup can select the other mode face during this actual entry
+            # (Public Outcry). Initialize that face once; later flips do not
+            # enter play and must not refill its counters.
+            face = self.card.face
+            if HasUses.IsType(face) and face.uses_counters:
+                face.components.counter.PlaceCounters(face.uses_counters, face.uses_counter_name)
             return True
         return False
 

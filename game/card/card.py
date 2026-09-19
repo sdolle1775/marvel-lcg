@@ -546,7 +546,7 @@ class Card(Object):
             if not from_area.flags.is_obligations_area and not into_area.flags.is_discards and not into_area.flags.is_place_card_area:
                 up_face.Reset(False)
         elif into_area.flags.is_in_play and not from_area.flags.is_in_play:
-            up_face.ApplyAfterEnterPlay(from_area, into_area, by_effect, is_flip=False)
+            up_face.ApplyAfterEnterPlay(from_area, into_area, by_effect)
 
         return True
 

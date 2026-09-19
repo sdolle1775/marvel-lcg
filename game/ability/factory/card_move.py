@@ -93,14 +93,17 @@ class AbilityFactoryCardMove:
                           which_card: CardType,
                           operation: OperationType[Message.WhenCardEnterPlay],
                           *,
+                          include_face_changes: bool=False,
                           conditions: ConditionsType[Message.WhenCardEnterPlay]=[],
                           ) -> 'Ability':
+        # Continuous-effect helpers opt in to refreshing on face changes.
+        # Printed entry abilities and keywords use actual entries only.
         def check_which_card(effect: 'Effect', message: 'Message.WhenCardEnterPlay') -> bool:
             return Condition.CheckWhichCard(which_card, message.trigger, effect)
 
         return Ability(
             ability_type,
-            Message.WhenCardEnterPlay,
+            Message.WhenCardEnterPlay|Message.WhenCardFaceActivated if include_face_changes else Message.WhenCardEnterPlay,
             [
                 check_which_card,
                 *conditions
@@ -114,9 +117,11 @@ class AbilityFactoryCardMove:
                            which_card: CardType,
                            operation: OperationType[Message.AfterCardEnterPlay],
                            *,
+                           include_face_changes: bool=False,
                            under_your_control: bool|None=None,
                            conditions: ConditionsType[Message.AfterCardEnterPlay]=[],
                            ) -> 'Ability':
+        # See WhenCardEnterPlay: face changes are internal refreshes.
         def check_under_your_control(effect: 'Effect', message: 'Message.AfterCardEnterPlay') -> bool:
             if under_your_control == None:
                 return True
@@ -127,7 +132,7 @@ class AbilityFactoryCardMove:
 
         return Ability(
             ability_type,
-            Message.AfterCardEnterPlay,
+            Message.AfterCardEnterPlay|Message.AfterCardFaceActivated if include_face_changes else Message.AfterCardEnterPlay,
             [
                 check_which_card,
                 check_under_your_control,

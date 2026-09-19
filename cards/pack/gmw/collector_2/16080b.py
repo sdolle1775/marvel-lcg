@@ -14,7 +14,8 @@ def GetAbilities() -> Sequence['Ability']:
                 AbilityType.Temp0,
                 "This",
                 lambda effect, message:
-                    face.SetHealth(face.printed_health, effect)
+                    face.SetHealth(face.printed_health, effect),
+                include_face_changes=True,
             ),
             unregister_after_exec=True,
             until_turn_end=True

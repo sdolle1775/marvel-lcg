@@ -440,6 +440,7 @@ class AbilityFactory(AbilityFactorySetup, AbilityFactoryTurnPhase, AbilityFactor
             AbilityType.Temp0,
             "This",
             action,
+            include_face_changes=True,
         )
 
 
@@ -639,7 +640,7 @@ class AbilityFactory(AbilityFactorySetup, AbilityFactoryTurnPhase, AbilityFactor
             if gives_by_revealed == None:
                 return True
             check_message = message.by_effect.bind_message
-            assert isinstance(check_message, Message.AfterCardEnterPlay|Message.WhenCardEnterPlay)
+            assert isinstance(check_message, Message.AfterCardEnterPlay|Message.WhenCardEnterPlay|Message.WhenCardFaceActivated|Message.AfterCardFaceActivated)
             return check_message.trigger.card.state.is_revealing
 
         return Ability(

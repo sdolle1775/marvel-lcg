@@ -390,7 +390,7 @@ class TestTimingOccurrence(unittest.TestCase):
             for ability in abilities
         ))
         self.assertTrue(all(
-            ability.when is Message.WhenCardEnterPlay
+            ability.when == Message.WhenCardEnterPlay | Message.WhenCardFaceActivated
             for ability in abilities
         ))
 

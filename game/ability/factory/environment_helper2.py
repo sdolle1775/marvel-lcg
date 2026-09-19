@@ -352,5 +352,6 @@ def WhenFaceApplyThisInternal(card_finder: CardTypeMin,
         AbilityType.NonKeyword,
         "This",
         when_this_in_play,
+        include_face_changes=True,
     )
 

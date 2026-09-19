@@ -67,7 +67,7 @@ class AbilityFactoryState:
         if include_advance:
             events |= Message.WhenVillainAdvance
         if include_enter_play:
-            events |= Message.WhenCardEnterPlay
+            events |= Message.WhenCardEnterPlay|Message.WhenCardFaceActivated
 
         def check_which_card(effect: 'Effect', message: 'TriggerMessage') -> bool:
             return Condition.CheckWhichCard(which_card, message.trigger, effect)

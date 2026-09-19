@@ -76,7 +76,7 @@ class AbilityFactoryEnhanceSelf:
                 store.ShiftTraits()
 
             def try_update_valid(valid_effect: 'Effect', message: 'Message2') -> None:
-                assert isinstance(message, Message.AfterCardGainTrait|Message.AfterCardLoseTrait|Message.AfterCardLeavePlay|Message.AfterCardEnterPlay)
+                assert isinstance(message, Message.AfterCardGainTrait|Message.AfterCardLoseTrait|Message.AfterCardLeavePlay|Message.AfterCardEnterPlay|Message.AfterCardFaceActivated)
                 face = message.trigger
 
                 if isinstance(message, Message.AfterCardLeavePlay):
@@ -129,7 +129,8 @@ class AbilityFactoryEnhanceSelf:
         return AbilityFactory.WhenCardEnterPlay(
             AbilityType.Temp0,
             "This",
-            when_this_valid
+            when_this_valid,
+            include_face_changes=True,
         )
 
     ################################################################################

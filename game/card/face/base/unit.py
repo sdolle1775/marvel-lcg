@@ -15,8 +15,16 @@ class Unit2(CanHealth, CanRetaliate, CanStatus, CanPlaceCounter, CanPlaceToken):
 
     @override
     def OnAfterCardEnterPlay(self, message: 'Message.AfterCardEnterPlay') -> None:
-        from game.effect.rule import GameRule
         super().OnAfterCardEnterPlay(message)
+        self.CheckHealthAfterActivation()
+
+    @override
+    def OnAfterCardFaceActivated(self, message: 'Message.AfterCardFaceActivated') -> None:
+        super().OnAfterCardFaceActivated(message)
+        self.CheckHealthAfterActivation()
+
+    def CheckHealthAfterActivation(self) -> None:
+        from game.effect.rule import GameRule
         if self.health <= 0 and self.IsInPlay() and not self.card.state.is_discarding: # Fix for "34009"
             # "12011"
             self.Death(None, GameRule(self))

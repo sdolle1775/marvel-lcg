@@ -43,7 +43,8 @@ class AbilityFactoryWhile:
         return AbilityFactory.WhenCardEnterPlay(
             AbilityType.NonKeyword,
             "This",
-            when_this_valid
+            when_this_valid,
+            include_face_changes=True,
         )
 
     @staticmethod
@@ -186,6 +187,7 @@ class AbilityFactoryWhile:
         return AbilityFactory.WhenCardEnterPlay(
             AbilityType.NonKeyword,
             "This",
-            when_this_valid
+            when_this_valid,
+            include_face_changes=True,
         )
 

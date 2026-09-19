@@ -72,7 +72,9 @@ class ModelOnEvent(ModelBase):
 
         this.card.components.OnAfterFlip(by_effect)
         if this.IsInPlay():
-            this.ApplyAfterEnterPlay(this.card.area, this.card.area, GameRule(this), is_flip=True)
+            activation = Message.WhenCardFaceActivated(this, GameRule(this))
+            if this.OnWhenCardFaceActivated(activation):
+                this.OnAfterCardFaceActivated(Message.AfterCardFaceActivated(this, activation))
             # Hack, fix "01114" "01127"
             this.card.state.is_swapping_end = False
             if this.IsFaceUp() and \
@@ -363,6 +365,13 @@ class ModelOnEvent(ModelBase):
 
     ################################################################################
     #
+    def OnWhenCardFaceActivated(self, message: 'Message.WhenCardFaceActivated') -> bool:
+        message.Send()
+        return self.GetThis().IsInPlay()
+
+    def OnAfterCardFaceActivated(self, message: 'Message.AfterCardFaceActivated') -> None:
+        message.Send()
+
     def OnWhenCardEnterPlay(self, message: 'Message.WhenCardEnterPlay') -> bool:
         this = self.GetThis()
         message.Send()
@@ -376,13 +385,16 @@ class ModelOnEvent(ModelBase):
         message.Send()
 
     @final
-    def ApplyAfterEnterPlay(self, from_area: 'Deck', into_area: 'Deck', by_effect: 'Effect', is_flip: bool):
+    def ApplyAfterEnterPlay(self, from_area: 'Deck', into_area: 'Deck', by_effect: 'Effect'):
         from game.message import Message
         this = self.GetThis()
-        enter_play_message = Message.WhenCardEnterPlay(this, by_effect, is_flip=is_flip)
+        enter_play_message = Message.WhenCardEnterPlay(this, by_effect)
         if not this.OnWhenCardEnterPlay(enter_play_message):
             return
 
+        # A setup mode ability may have flipped the card during its entry.
+        # The final face is the one that actually finishes entering play.
+        this = this.card.face
         # "32088b"
         # assert this.card.area == into_area, f"{this.card.area=} {into_area=}"
         after_message = Message.AfterCardEnterPlay(this, from_area, into_area, by_effect, enter_play_message)

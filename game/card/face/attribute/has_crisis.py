@@ -26,6 +26,13 @@ class CanCrisis(HasAttribute):
         self.GainCrisis(self.printed_crisis, by_effect)
         return super().OnResetKeywords(by_effect)
 
+    @override
+    def OnWhenCardFaceActivated(self, message: 'Message.WhenCardFaceActivated') -> bool:
+        if super().OnWhenCardFaceActivated(message):
+            self.SetCrisisEffectedBy(self.IsCrisis())
+            return True
+        return False
+
     ################################################################################
     #
     @final

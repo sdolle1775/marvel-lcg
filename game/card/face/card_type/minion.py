@@ -126,6 +126,13 @@ class Minion(Enemy, CanQuickstrike, CanTeamwork, HasGuard, HasPatrol, HasVillain
 
         self.SetGuardPatrolEffectedBy(self.IsGuard(), self.IsPatrol())
 
+    @override
+    def OnWhenCardFaceActivated(self, message: 'Message.WhenCardFaceActivated') -> bool:
+        if not super().OnWhenCardFaceActivated(message):
+            return False
+        self.SetGuardPatrolEffectedBy(self.IsGuard(), self.IsPatrol())
+        return True
+
     def EngagePlayer(self, player: 'Player', by_effect: 'Effect') -> bool:
         from game.effect.rule import GameRule
         from game.operate.faces import Faces

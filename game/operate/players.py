@@ -188,7 +188,7 @@ class Players:
             if isinstance(message, Message.AfterCardLeavePlay):
                 units.pop(message.trigger, None)
                 # process_fn(message.trigger, -1)
-            elif isinstance(message, Message.AfterCardEnterPlay):
+            elif isinstance(message, Message.AfterCardEnterPlay|Message.AfterCardFaceActivated):
                 found_units = [unit for unit in units if unit.card == message.trigger.card and unit != message.trigger]
                 for unit in found_units:
                     units.pop(unit, None)
@@ -212,7 +212,7 @@ class Players:
         by_effect.this.effect.RegisterTemp(
             Ability(
                 AbilityType.Temp0,
-                Message.AfterCardGainTrait|Message.AfterCardLoseTrait|Message.AfterCardLeavePlay|Message.AfterCardEnterPlay,
+                Message.AfterCardGainTrait|Message.AfterCardLoseTrait|Message.AfterCardLeavePlay|Message.AfterCardEnterPlay|Message.AfterCardFaceActivated,
                 [check],
                 action,
             ),
