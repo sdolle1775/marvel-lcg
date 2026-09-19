@@ -74,6 +74,7 @@ class SenderUnit:
             self.by_effect: Final = would_defeated_message.by_effect
             self.excess_damage: Final = this.health * -1
             self.ignore_when_defeated: Final = ignore_when_defeated
+            self.add_to_victory_display = False
 
             def get_defeated_player() -> 'Player|None':
                 from game.player import Player

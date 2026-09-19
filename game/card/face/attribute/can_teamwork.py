@@ -93,7 +93,9 @@ class CanTeamwork(HasTeamwork):
                 break
 
         if has_teamwork:
-            if self.card.world.rule.v16_teamwork:
+            # The v1.8 keyword activates only the entering minion, including
+            # games that did not also enable the older v1.6 rule switches.
+            if self.card.world.rule.v18_timing or self.card.world.rule.v16_teamwork:
                 minion = self.card.CastTo(Minion)
                 minion.DoActivate(minion.GetEngagedPlayer(), Teamwork(minion))
             else:

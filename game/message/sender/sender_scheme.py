@@ -167,6 +167,7 @@ class SenderScheme:
             self.killer: Final = killer if killer else by_effect.this
             self.by_effect: Final = by_effect
             self.ignore_when_defeated: Final = ignore_when_defeated
+            self.add_to_victory_display = False
             # player = message.killer.GetController()
             # if cause:
             #     Render.Print(f'{this} was defeated by {by_effect}', this, by_effect.this)

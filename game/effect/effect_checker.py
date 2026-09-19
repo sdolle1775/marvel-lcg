@@ -79,9 +79,11 @@ class EffectChecker:
                 effect.context.target_range = (0, 0)
             return True
 
-        if effect.world.rule.v16_confuse_stun:
+        if effect.world.rule.v18_timing or effect.world.rule.v16_confuse_stun:
             # A stunned character can attempt to attack or use an attack ability even if it has no valid target for an attack.
-            # Only for play cards, we cannot use `is_like_xxx` here
+            # This also applies to attack/thwart Specials: an undamaged
+            # Vibranium Suit can remove stun before the next upgrade resolves.
+            # We cannot use `is_like_xxx` here; basic powers handle their own targets.
             status_cancels_ability = (
                 ability.is_label_attack and effect.initiator.GetRoleCharacter().IsStunned()
             ) or (
@@ -179,7 +181,12 @@ class EffectChecker:
                     self.cost_for_different_target.AddPayment(target, cost_effect, res, check_effect)
                 pass
 
-            if "09039" in [x.paper.card_id for x in effect.context.all_legal_targets]:
+            # Upgrade costs can depend on the attached card (Iron Man) or
+            # its play area (Pawn Shop Showdown). Price each destination.
+            if effect.context.all_legal_targets and (
+                (ability.is_play and Upgrade.IsType(effect.this)) or
+                "09039" in [x.paper.card_id for x in effect.context.all_legal_targets]
+            ):
                 for target in effect.context.all_legal_targets:
                     process_target(target)
             else:

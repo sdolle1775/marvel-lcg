@@ -358,7 +358,7 @@ class TestSenseDeck(unittest.TestCase):
         )
         effect.initiator.IsScenario.return_value = False
         message = SimpleNamespace(
-            defeating_player=player,
+            is_be_instead=False,
             killer=hero,
         )
 
@@ -368,7 +368,7 @@ class TestSenseDeck(unittest.TestCase):
                     module = import_module(f"cards.pack.fne.sense_deck.{card_id}")
                     with patch.object(
                         module.AbilityFactory,
-                        "WhenUnitBeDefeated",
+                        "WhenUnitWouldBeDefeated",
                     ) as factory:
                         module.GetAbilities()
                     defeated_by_you = factory.call_args.kwargs["conditions"][0]
@@ -377,11 +377,15 @@ class TestSenseDeck(unittest.TestCase):
 
                     message.killer = ally
                     self.assertFalse(defeated_by_you(effect, message))
+                    message.killer = self.controlled_face(Hero, MagicMock())
+                    self.assertFalse(defeated_by_you(effect, message))
+                    message.killer = None
+                    self.assertFalse(defeated_by_you(effect, message))
                     message.killer = hero
 
-                    message.defeating_player = MagicMock()
+                    message.is_be_instead = True
                     self.assertFalse(defeated_by_you(effect, message))
-                    message.defeating_player = player
+                    message.is_be_instead = False
 
     def test_deft_focus_reduces_a_sense_played_as_if_from_hand(self):
         fixture = TimingFixture(

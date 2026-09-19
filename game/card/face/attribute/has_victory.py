@@ -48,12 +48,17 @@ class HasVictory(HasAttribute):
                     effect.this.CastTo(HasVictory).MoveToVictoryDisplay(),
             )
         elif Unit2.IsType(self) or Scheme2.IsType(self):
+            def resolve_victory(effect: 'Effect', message: 'Message.WhenUnitBeDefeated|Message.WhenSchemeBeDefeated') -> None:
+                # V1.8 gives Victory When Defeated timing, but the defeated
+                # card stays in play until all of its defeat abilities resolve.
+                # Record its destination for the defeat's leave-play step.
+                message.add_to_victory_display = True
+
             ability = Ability(
                 AbilityType.WhenDefeated,
                 Message.WhenUnitBeDefeated|Message.WhenSchemeBeDefeated,
                 [is_direct_victory_trigger],
-                lambda effect, message:
-                    effect.this.CastTo(HasVictory).MoveToVictoryDisplay(),
+                resolve_victory,
             )
         else:
             return super().GetAbilities()

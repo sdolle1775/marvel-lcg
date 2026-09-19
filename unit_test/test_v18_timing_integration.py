@@ -1025,12 +1025,12 @@ class TestV18TimingPlayableCheckpoints(unittest.TestCase):
         ]
         command_index = 0
         thwarted = False
-        automatic_internal_choices = 0
+        confirmed_optional_choices = 0
         confirmed_optional_responses = 0
 
         def choose(prompt):
             nonlocal command_index, thwarted
-            nonlocal automatic_internal_choices, confirmed_optional_responses
+            nonlocal confirmed_optional_choices, confirmed_optional_responses
             if prompt.event_name == "WhenPlayerInTurn" and command_index < len(commands):
                 command = commands[command_index]
                 command_index += 1
@@ -1051,8 +1051,11 @@ class TestV18TimingPlayableCheckpoints(unittest.TestCase):
                     option.get("automatic_targets"),
                     option.get("all_legal_targets"),
                 )
-                self.assertTrue(option.get("automatic_submit"))
-                automatic_internal_choices += 1
+                # The Egg's optional ready effect still offers Cancel even
+                # when the identity is its only legal target.
+                self.assertEqual(prompt.options[-1]["name"], "Cancel")
+                self.assertFalse(option.get("automatic_submit"))
+                confirmed_optional_choices += 1
                 return CommandDescriptor(
                     str(option.get("choice_id") or option["id"]),
                     [],
@@ -1081,7 +1084,7 @@ class TestV18TimingPlayableCheckpoints(unittest.TestCase):
         self.assertFalse(identity.IsExhaust())
         self.assertTrue(investigator.IsExhaust())
         self.assertEqual(len(game.world.const_players[0].hand_cards.Get()), 1)
-        self.assertEqual(automatic_internal_choices, 1)
+        self.assertEqual(confirmed_optional_choices, 1)
         self.assertEqual(confirmed_optional_responses, 1)
         self.assertEqual(game.world.FindCardsOnField(name="Hujahdarian Monarch Egg"), [])
         self.assertEqual(game.world.event_manager.timing_occurrences, [])

@@ -63,6 +63,8 @@ class Scheme2(HasAmplify, HasHazard, CanHinder, CanPlaceCounter, HasAssault, Has
         # Fix "04122"
         defeated_message = Message.WhenSchemeBeDefeated(self, would_defeated_message, ignore_when_defeated)
         defeated_message.Send()
+        if defeated_message.add_to_victory_display and self.IsInPlay():
+            self.CastTo(HasVictory).MoveToVictoryDisplay()
         super().OnBeDefeated(would_defeated_message, as_asset=as_asset, ignore_when_defeated=ignore_when_defeated)
         if self.IsInPlay():
             Faces.DiscardAll([self], by_effect)

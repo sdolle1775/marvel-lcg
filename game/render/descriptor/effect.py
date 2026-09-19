@@ -35,9 +35,9 @@ class EffectDescriptor:
     # can submit the selected ability without opening a target-selection step.
     automatic_targets: List[int] = field(default_factory=list)
     # Most exact one-of-one outcomes can be submitted immediately. Optional
-    # Interrupts, Responses, and basic defense declarations are exceptions:
-    # keep the sole target preselected, but let the player explicitly confirm
-    # or cancel.
+    # Interrupts, Responses, optional ability choices, and basic defense
+    # declarations are exceptions: keep the sole target preselected, but let
+    # the player explicitly confirm or cancel.
     automatic_submit: bool = True
 
     # is_ex_effect check `AskOption`

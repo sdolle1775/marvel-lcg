@@ -11,9 +11,9 @@ def GetAbilities() -> Sequence['Ability']:
             in_this="Phase",
         )
 
-    def defeated_by_you(effect: 'Effect', message: 'Message2') -> bool:
+    def defeated_by_you(effect: 'Effect', message: 'Message.WhenUnitWouldBeDefeated') -> bool:
         return (
-            message.defeating_player == effect.GetInitiator()
+            not message.is_be_instead
             and Condition.CheckWhichCard("YourIdentity", message.killer, effect)
         )
 
@@ -21,11 +21,11 @@ def GetAbilities() -> Sequence['Ability']:
         AbilityFactory.CanPlayThisUpgradeCard(
             CardFinder(card_type=Enemy|Scheme2),
         ),
-        AbilityFactory.WhenUnitBeDefeated(
+        # Interrupt before defeat discards the enemy and its attached upgrades.
+        AbilityFactory.WhenUnitWouldBeDefeated(
             AbilityType.Interrupt,
             "AttachedEnemy",
             enhanced_olfaction,
-            has_defeating_player=True,
             conditions=[defeated_by_you],
         ).SetCostFunc(CostFunc.Discard("This")),
         AbilityFactory.WhenSchemeWouldRemoveThreat(

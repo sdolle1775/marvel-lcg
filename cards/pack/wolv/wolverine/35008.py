@@ -11,12 +11,9 @@ def GetAbilities() -> Sequence['Ability']:
         initiator = effect.GetInitiator()
 
         def repeat_this_ability():
-            # effect.Repeat(name="take 2 damage to repeat this ability", ex_cost_func=CostFunc.TakeDamage(Select(None, CardFinder(card_type=Identity)), 2)))
-            # effect.Repeat(message, forced=False)
-
             def repeat_this_ability_internal(targets: Sequence['CardFace']):
                 initiator.GetIdentity().TakeDamage(this, 2, effect)
-                action(targets)
+                action(targets, is_repeat=True)
 
             initiator.MayChooseOneAbility(
                 effect,
@@ -27,7 +24,7 @@ def GetAbilities() -> Sequence['Ability']:
                 .SetTarget(Enemy)
             )
 
-        def action(targets: Sequence['CardFace']):
+        def action(targets: Sequence['CardFace'], *, is_repeat: bool=False):
             this.effect.RegisterTemp(
                 AbilityFactory.AfterUnitDefeatedUnitInternal(
                     AbilityType.Temp0,
@@ -46,7 +43,8 @@ def GetAbilities() -> Sequence['Ability']:
                 until_turn_end=True,
                 until_resolve_effect=effect,
             )
-            this.DealDamage(targets, 4, effect)
+            this.DealDamage(targets, 4, effect,
+                            property=AttackProperty(resolve_separately=is_repeat))
 
         action(effect.targets)
 

@@ -441,8 +441,10 @@ class TestV18OtherKeywordResolution(unittest.TestCase):
 
         victory_face = MagicMock()
         effect.this.CastTo.return_value = victory_face
-        victory.operation(effect, MagicMock())
-        victory_face.MoveToVictoryDisplay.assert_called_once_with()
+        defeat = SimpleNamespace(add_to_victory_display=False)
+        victory.operation(effect, defeat)
+        self.assertTrue(defeat.add_to_victory_display)
+        victory_face.MoveToVictoryDisplay.assert_not_called()
 
     def test_piercing_does_not_discard_tough_when_attack_deals_no_damage(self):
         attack = MagicMock()

@@ -31,6 +31,7 @@ def _make_status_effect(ability, status):
         target_range=None,
     )
     effect.initiator.GetRoleCharacter.return_value = role
+    effect.world.rule.v18_timing = False
     effect.world.rule.v16_confuse_stun = True
     return effect
 

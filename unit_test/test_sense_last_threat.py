@@ -26,7 +26,8 @@ class TestSenseLastThreat(unittest.TestCase):
 
     def test_reported_save_offers_acute_tactility_during_superior_taste(self):
         # The checkpoint keeps the reported choices through Superior Taste,
-        # with CRCs and the earlier Olfaction trigger updated for the fixes.
+        # with CRCs and earlier Sense triggers updated for the fixes, including
+        # enemy-defeat interrupts before When Defeated abilities (#107).
         scene = validate_file(Path(__file__).parent / "fixtures" / "issue_99_sense_interrupt.json")
         expected_crcs = [operation.crc for operation in scene.inputs]
         devices = HeadlessDeviceManager(stop_when=lambda prompt: True)

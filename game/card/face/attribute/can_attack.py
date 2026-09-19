@@ -45,6 +45,9 @@ class AttackProperty(PowerProperty):
     ignore_retaliate: bool = field(default=False)
     lost_piercing: bool = field(default=False)
     attack_in_event: bool = field(default=False) # "08004"
+    # An attack repeated during another attack's response window must finish
+    # here instead of deferring completion to the original ability.
+    resolve_separately: bool = field(default=False)
     divide_damage_among_each_character_attacked_player_control: bool = field(default=False) # "31031"
 
     against_player: 'Player|None' = field(default=None)
@@ -221,7 +224,8 @@ class CanAttack(CardFace):
         # And that's why we check `would_atk_message` after it
         gain_value_when_divided(would_atk_message)
 
-        is_not_delay = activate_message or use_basic_power_message or not by_effect.ability.IsLabel('attack')
+        is_not_delay = activate_message or use_basic_power_message or \
+            property.resolve_separately or not by_effect.ability.IsLabel('attack')
         timing_occurrence = (
             world.event_manager.BeginTimingOccurrence()
             if is_not_delay

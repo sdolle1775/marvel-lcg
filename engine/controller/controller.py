@@ -111,6 +111,15 @@ class Controller:
         else:
             effect_descriptors = [effect.Render(by_effect, self.player_id) for effect in effect_list]
 
+        # A sole target does not make an optional ability mandatory. The
+        # choice can be declined through either the prompt's Cancel button
+        # or the explicit Cancel ability added by MayChooseOneAbility.
+        if isinstance(message, Message.WhenPlayerChooseAbility) and (
+            is_forced == False or any(effect.IsName("Cancel") for effect in effect_list)
+        ):
+            for descriptor in effect_descriptors:
+                descriptor.automatic_submit = False
+
         # Load replay
         is_puzzle = message.world.scene.is_puzzle
         replay_input, read_ok = controller_manager.replay.GetReplayOperation(is_puzzle)
