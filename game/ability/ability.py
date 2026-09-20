@@ -58,6 +58,10 @@ class Ability:
         # Surge/Incite equivalents.
         self.v18_timing_keyword = False
 
+        # Mandatory bookkeeping that can run at its normal timing priority
+        # without asking players to order it against other forced abilities.
+        self.resolve_automatically = False
+
         self.cost_fn: Callable[['Effect', List['CardFace']], Cost]|None = None
         self.play_cost: Cost|None = None
 

@@ -523,6 +523,39 @@ class TestTimingOccurrence(unittest.TestCase):
             [second.TryPrepare.return_value, first.TryPrepare.return_value],
         )
 
+    def test_automatic_forced_effect_keeps_other_grouped_ordering_choices(self):
+        world = self.make_world()
+        world.controller_manager.replay.GetReplayOperation.return_value = (None, True)
+        manager = EventManager(world)
+        message = SimpleNamespace(world=world)
+        candidates = []
+        for index in range(3):
+            effect = MagicMock()
+            effect.IsPlayerInitiator.return_value = False
+            effect.ability.resolve_automatically = index == 2
+            candidates.append(SimpleNamespace(
+                key=(index, 100), effect=effect, message=message,
+                TryPrepare=MagicMock(return_value=effect),
+            ))
+        first, second, automatic = candidates
+
+        def build(messages, category, priority, asked_player, processed):
+            if category != 'Forced' or priority != TimingPriority.ForcedInterrupt:
+                return []
+            return [candidate for candidate in candidates if candidate.key not in processed]
+
+        manager._BuildTimingCandidates = MagicMock(side_effect=build)
+        manager._ChooseTimingCandidate = MagicMock(return_value=(second, False))
+        manager.ProcessEffect = MagicMock(return_value=True)
+        manager.BroadcastTimingWindow([message])
+
+        manager._ChooseTimingCandidate.assert_called_once_with(
+            world.GetFirstPlayer(), [first, second], TimingPriority.ForcedInterrupt,
+            forced=True, select_only=True,
+        )
+        self.assertEqual([call.args[0] for call in manager.ProcessEffect.call_args_list],
+                         [automatic.effect, second.effect, first.effect])
+
     def test_same_face_forced_abilities_are_ordered_in_normal_v18_windows(self):
         world = self.make_world()
         first_player = world.GetFirstPlayer.return_value

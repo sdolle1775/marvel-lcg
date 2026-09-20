@@ -60,6 +60,9 @@ class HasVictory(HasAttribute):
                 [is_direct_victory_trigger],
                 resolve_victory,
             )
+            # Only records the destination; moving the defeated card still
+            # waits for all defeat abilities. Ordering this flag has no effect.
+            ability.resolve_automatically = True
         else:
             return super().GetAbilities()
 

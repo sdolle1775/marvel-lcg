@@ -1015,7 +1015,7 @@ class TestV18TimingPlayableCheckpoints(unittest.TestCase):
         self.assertEqual(game.world.FindCardsOnField(name="Martyr"), [])
         self.assertEqual(game.world.event_manager.timing_occurrences, [])
 
-    def test_basic_thwart_orders_when_defeated_victory_and_response(self):
+    def test_basic_thwart_resolves_victory_without_ordering_prompt(self):
         path = OUTPUT_DIRECTORY / "13_thwart_and_scheme_defeat.json"
         commands = [
             'Puzzle.ChangeForm("01010b", "Hero")',
@@ -1039,12 +1039,6 @@ class TestV18TimingPlayableCheckpoints(unittest.TestCase):
                 option = next(option for option in prompt.options if option.get("name") == "Thwart")
                 thwarted = True
                 return self._choice(option, [option["all_legal_targets"][-1]])
-            if prompt.ability_type == "ForcedInterrupt":
-                option = next(
-                    (option for option in prompt.options if option.get("name") == "When_Defeated"),
-                    prompt.options[0],
-                )
-                return self._choice(option)
             if prompt.event_name == "WhenPlayerChooseAbility":
                 option = prompt.options[0]
                 self.assertEqual(
@@ -1086,6 +1080,7 @@ class TestV18TimingPlayableCheckpoints(unittest.TestCase):
         self.assertEqual(len(game.world.const_players[0].hand_cards.Get()), 1)
         self.assertEqual(confirmed_optional_choices, 1)
         self.assertEqual(confirmed_optional_responses, 1)
+        self.assertFalse(any(prompt.ability_type == "ForcedInterrupt" for prompt in devices.prompts))
         self.assertEqual(game.world.FindCardsOnField(name="Hujahdarian Monarch Egg"), [])
         self.assertEqual(game.world.event_manager.timing_occurrences, [])
 

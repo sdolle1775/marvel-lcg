@@ -680,17 +680,19 @@ class EventManager:
                         descriptor.choice_id = candidate.choice_id
                         candidates.append(candidate)
                     self._FinalizeTimingCandidateLabels(candidates)
-                    candidate, retry_choice = self._ChooseTimingCandidate(
-                        first_player,
-                        candidates,
-                        priority,
-                        forced=True,
-                        select_only=True,
-                    )
-                    if retry_choice:
-                        continue
+                    candidate = self._GetAutomaticTimingCandidate(candidates)
                     if candidate == None:
-                        break
+                        candidate, retry_choice = self._ChooseTimingCandidate(
+                            first_player,
+                            candidates,
+                            priority,
+                            forced=True,
+                            select_only=True,
+                        )
+                        if retry_choice:
+                            continue
+                        if candidate == None:
+                            break
                     effect = candidate.effect
                 else:
                     faces = [x.this for x in forced_effects if not x.ability.flags.is_delay_ability]
@@ -1108,6 +1110,26 @@ class EventManager:
             return None, False
         return candidates[override.selected_index], False
 
+    def _GetAutomaticTimingCandidate(
+        self,
+        candidates: Sequence['TriggeredCandidate'],
+    ) -> 'TriggeredCandidate|None':
+        from game.event.timing import TriggeredCandidate
+
+        automatic = next((candidate for candidate in candidates
+                          if getattr(candidate.effect.ability, "resolve_automatically", False) is True), None)
+        if automatic == None:
+            return None
+
+        # Older saves contain an ordering choice for this window. Let the
+        # normal replay reader consume it so subsequent inputs stay aligned.
+        operation, _ = self.world.controller_manager.replay.GetReplayOperation(
+            self.world.scene.is_puzzle, check_crc=False,
+        )
+        if operation and TriggeredCandidate.ConvertReplayId(operation.effect.id, candidates) != None:
+            return None
+        return automatic
+
     def BroadcastTimingWindow(self, messages: Sequence['Message2']) -> None:
         """Resolve simultaneous conditions in one v1.8 timing window."""
         from game.ability import TimingPriority
@@ -1169,17 +1191,19 @@ class EventManager:
                     if effect == None:
                         continue
                 else:
-                    candidate, retry_choice = self._ChooseTimingCandidate(
-                        self.world.GetFirstPlayer(),
-                        candidates,
-                        priority,
-                        forced=True,
-                        select_only=True,
-                    )
-                    if retry_choice:
-                        continue
+                    candidate = self._GetAutomaticTimingCandidate(candidates)
                     if candidate == None:
-                        return
+                        candidate, retry_choice = self._ChooseTimingCandidate(
+                            self.world.GetFirstPlayer(),
+                            candidates,
+                            priority,
+                            forced=True,
+                            select_only=True,
+                        )
+                        if retry_choice:
+                            continue
+                        if candidate == None:
+                            return
                     effect = candidate.TryPrepare()
                     if effect == None:
                         from engine.log import Log
