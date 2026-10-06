@@ -130,6 +130,8 @@ def GetGamePlayRules() -> List['Ability']:
                     not message.IsByConsequential()
             ]
         ),
+        # These global keyword handlers stay bound to the rule insert in the
+        # original game area, but must also resolve in Kang's separate areas.
         Ability(
             AbilityType.ForcedResponse,
             Message.AfterUnitAttackUnit,
@@ -144,7 +146,7 @@ def GetGamePlayRules() -> List['Ability']:
                     not message.would_atk_unit_message.IsIgnoreRetaliate()
             ],
             resolve_v18_retaliate,
-        ).SetName("Retaliate").NoOutOfPlayLimit(),
+        ).SetName("Retaliate").NoOutOfPlayLimit().NoGameAreaLimit(),
         Ability(
             AbilityType.ForcedInterrupt,
             Message.WhenStatusWouldCardPlaceOn,
@@ -156,6 +158,6 @@ def GetGamePlayRules() -> List['Ability']:
                     message.status_name in ("Stunned", "Confused")
             ],
             resolve_v18_vulnerable,
-        ).SetName("Vulnerable").NoOutOfPlayLimit(),
+        ).SetName("Vulnerable").NoOutOfPlayLimit().NoGameAreaLimit(),
     ]
 
