@@ -1,3 +1,14 @@
+# Unreleased
+
+## Card image downloads ([#134](https://github.com/sdolle1775/marvel-lcg/issues/134))
+
+- Failed downloads use a temporary text-only fallback and can retry after a 30-second cooldown when the image is requested again, without restarting the game.
+- Temporarily unreachable image hosts are skipped while the next configured provider is tried. Connection and response-body timeouts allow more time for successful downloads.
+- Remote responses are checked before being written to the artwork cache. Invalid responses fall through to the next provider, corrupt cached files can be downloaded again, and file extensions follow the actual image format.
+- Corrected the update instructions: downloaded `assets/cache` artwork can be copied into a new installation and reused. The release archive still excludes downloaded artwork.
+
+---
+
 # Marvel Champions Digital v1.3.3
 
 Application version: **1.3.3r**

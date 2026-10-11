@@ -1,5 +1,7 @@
 from core import *
 import requests
+from time import monotonic
+from urllib.parse import urlsplit
 from engine.lib import ImageCreator, ImageLib
 from engine.log import Log
 from engine.file import FileManager
@@ -18,6 +20,11 @@ class Cache:
 
     cache: Dict[str, bytes] = {}
     link_pic: Dict[str, str] = {}
+    # A failed download must not make a placeholder permanent for this session.
+    retry_after: Dict[str, float] = {}
+    host_retry_after: Dict[str, float] = {}
+    RETRY_SECONDS = 30
+    DOWNLOAD_TIMEOUT = (5, 10)  # Connection and response-body timeouts.
 
     # Scenario reference cards are not exposed by the numbered card-image
     # providers. Keep their official image locations explicit so they use the
@@ -63,6 +70,7 @@ class Cache:
     @staticmethod
     def SetCache(card_id: str, data: bytes):
         Cache.cache[card_id] = data
+        Cache.retry_after.pop(card_id, None)
 
     @staticmethod
     def LoadImage(card_id: str) -> bytes:
@@ -71,7 +79,10 @@ class Cache:
         card_id = card_id.lstrip("/")
 
         if card_id in Cache.cache:
-            return Cache.cache[card_id]
+            if monotonic() < Cache.retry_after.get(card_id, float('inf')):
+                return Cache.cache[card_id]
+            Cache.cache.pop(card_id, None)
+            Cache.retry_after.pop(card_id, None)
 
         assert card_id != "", f"{card_id=}"
         file_name = card_id
@@ -87,8 +98,11 @@ class Cache:
             for ext_name in [".webp", ".jpg", ".png"]:
                 check_path = file_path + ext_name
                 if FileManager.Exists(check_path):
-                    with FileManager.OpenFile(check_path, read=True, bin=True) as file:
-                        return try_load_image_data(file.Read())
+                    try:
+                        with FileManager.OpenFile(check_path, read=True, bin=True) as file:
+                            return try_load_image_data(file.Read())
+                    except (OSError, ValueError) as error:
+                        Log.Warn(CATEGORY_NAME, f"Invalid cached image {check_path}: {error}")
             return None
 
         def try_load_image_name(name: str) -> bytes|None:
@@ -140,7 +154,6 @@ class Cache:
                 full_url = full_url.replace('{card_id:U}', remote_card_id.upper())
                 remote_urls.append(full_url)
 
-        is_time_out = True
         if remote_urls:
             # Load the image from the internet
             skip_break = not BREAK_WHEN_LOAD_ONLINE_IMAGE.value
@@ -155,48 +168,51 @@ class Cache:
             # "https://marvelcdb.com/bundles/cards/${card_id}.jpg",
             # "https://marvelcdb.com/bundles/cards/${card_id}.png",
 
-            is_time_out = False
-
             for full_url in remote_urls:
+                host = urlsplit(full_url).netloc
+                if monotonic() < Cache.host_retry_after.get(host, 0):
+                    continue
                 try:
                     Log.DebugInfo(CATEGORY_NAME, f"Downloading from {full_url}")
 
-                    response = requests.get(full_url, headers=headers, timeout=3)
+                    response = requests.get(full_url, headers=headers, timeout=Cache.DOWNLOAD_TIMEOUT)
                     response.raise_for_status()
-
-                    content_type = response.headers.get('Content-Type')
-
-                    ext_name = "bmp"
-                    if content_type:
-                        # Determine the image format based on the Content-Type
-                        if 'image/jpeg' in content_type:
-                            ext_name = "jpg"
-                        elif 'image/png' in content_type:
-                            ext_name = "png"
-                        elif 'image/webp' in content_type:
-                            ext_name = "webp"
-
-                    # Check if the response is successful
-                    Log.DebugInfo(CATEGORY_NAME, f"Downloaded: {file_name}")
                     data = response.content
-                    # Save the image to the cache
+                    try:
+                        image_data = try_load_image_data(data)
+                    except (OSError, ValueError) as error:
+                        Log.Warn(CATEGORY_NAME, f"Invalid image downloaded from {full_url}: {error}")
+                        continue
+                    # Some providers label PNG bytes as JPEG, or vice versa.
+                    ext_name = {
+                        'image/jpeg': 'jpg',
+                        'image/png': 'png',
+                        'image/webp': 'webp',
+                    }[ImageLib.GetContentType(data)]
                     save_to_file(cache_file_name, ext_name, data)
-                    # Get the image data from the response
-                    image_data = try_load_image_data(data)
+                    Log.DebugInfo(CATEGORY_NAME, f"Downloaded: {file_name}")
+                    Cache.host_retry_after.pop(host, None)
                     Cache.SetCache(file_name, image_data)
                     return image_data
                 except requests.exceptions.Timeout:
                     Log.Warn(CATEGORY_NAME, f"Timeout occurred while downloading {file_name}")
-                    is_time_out = True
                 except requests.exceptions.RequestException as e:
                     Log.Warn(CATEGORY_NAME, f"Request failed with error: {e}")
+                    if isinstance(e, requests.exceptions.ConnectionError) or (
+                        e.response is not None and (e.response.status_code == 429 or e.response.status_code >= 500)
+                    ):
+                        Cache.host_retry_after[host] = monotonic() + Cache.RETRY_SECONDS
 
         # raise Exception(f"Failed to load {file_name} from the internet")
         image_data = ImageCreator.CreateNoImage(
             card_id,
             force_text=card_id in Cache.SPECIAL_IMAGE_URLS,
         )
-        if SAVE_EMPTY_IMAGE.value and not is_time_out:
+        # Never write failed remote downloads as artwork: they must be able to
+        # recover when the provider or connection returns.
+        if SAVE_EMPTY_IMAGE.value and not remote_urls:
             save_to_file(cache_file_name, "jpg", image_data)
         Cache.SetCache(file_name, image_data)
+        if remote_urls:
+            Cache.retry_after[file_name] = monotonic() + Cache.RETRY_SECONDS
         return image_data

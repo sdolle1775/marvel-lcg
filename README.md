@@ -16,7 +16,7 @@ v1.3.3 adds a complete local replay library with playback that stops at the reco
 - A new optional **Show Deck During Full Search** setting, allowing players to inspect the complete searched deck or discard pile while still preserving random searches and shuffles.
 - A dedicated Fear No Evil campaign setup interface for tracking scenario outcomes, Underlings, campaign cards, rewards, removed allies and Persona supports, and randomized scenario progression.
 
-Campaign setup choices are saved in `campaign_settings.json`. When installing a new release, extract it into a new folder and copy this file from the previous installation to preserve those choices. Also copy any saves, replays, or custom decks you want to retain. Keep `marvel-lcg.exe` beside its `_internal` folder, and do not copy the old executable or old `public`, `data`, or cache folders into the new installation.
+Campaign setup choices are saved in `campaign_settings.json`. When installing a new release, extract it into a new folder and copy this file from the previous installation to preserve those choices. Also copy any saves, replays, or custom decks you want to retain. You may copy `assets/cache` to reuse downloaded card artwork and avoid downloading it again. Keep `marvel-lcg.exe` beside its `_internal` folder, and do not copy the old executable or old `public` or `data` folders into the new installation.
 
 See the [complete patch notes](PATCH_NOTES.md) and [installation guide](docs/install_guide.md) for details.
 

@@ -9,8 +9,10 @@ files cannot be mixed with the new build.
 Copy `campaign_settings.json` from the old build folder into the new build
 folder, replacing or overwriting the destination file if prompted. This file
 contains the saved setup choices for every campaign. Also copy any personal
-saves, replays, or custom decks that you want to keep. Do not copy the previous
-executable, `public`, `data`, `assets/cache`, or `launch.json` unless you
+saves, replays, or custom decks that you want to keep. You may also copy
+`assets/cache` to reuse downloaded card artwork; updating the game does not
+require discarding these images. Do not copy the previous
+executable, `public`, `data`, or `launch.json` unless you
 intentionally need to migrate a setting. If a build older than `1.0.0.1r` was
 previously opened, clear the browser's site data for
 `127.0.0.1:2345` once if the interface still appears out of date.
@@ -86,6 +88,15 @@ automatically. Close any older running copy of the game first because port
 ### 6. Card images
 
 The repository includes the small sounds and interface textures required to run the game. Standard card artwork is downloaded on demand from the image servers configured in `launch.json` and stored in `assets/cache`.
+
+If an image server is unavailable, existing cached artwork still works. Keep
+your previous installation's `assets/cache` folder and copy it into the new
+installation to reuse those downloads. The text-only cards are fallback
+images, not missing card definitions. In v1.3.3, restart the game and refresh
+the browser to retry images that failed earlier in the session. The updated
+source build retries failed downloads when you refresh after a 30-second
+cooldown, and skips temporarily unreachable servers while trying the next
+configured provider.
 
 For offline play, an optional image package can be placed in `assets/pics` or referenced through `image_folders` in `launch.json`.
 
