@@ -7,6 +7,7 @@ import { convertScenePosToWindowPos, Scene } from './scene.js'
 import { ClassName } from './class_name.js'
 import { CardAnimation } from './card_animation.js'
 import { Button } from './buttons.js'
+import { CardImages } from '../module/card_images.js'
 
 ////////////////////////////////////////////////////////////////////////////////
 //
@@ -26,6 +27,7 @@ export class HoverCard{
     private static using_left = true
     private static is_showing = false
     private static is_overlay = false
+    private static preview_source = ""
 
     private static back_face_index = 0
 
@@ -390,7 +392,9 @@ export class HoverCard{
             preview_div.style.setProperty('--rotate-times', rotate_times)
             // console.log(rotate_times)
             // void preview_div.offsetWidth;
-            preview_div.style.setProperty('--bg-image', bg_image)
+            HoverCard.preview_source = bg_image
+            const image_source = /url\((.*?)\)$/.exec(bg_image)![1].replace(/"/g, '')
+            CardImages.setBackground(preview_div, '--bg-image', image_source)
 
             if( ButtonSetting.show_image_text ) {
                 preview_div.parentElement!.querySelector('.image-preview-name')!.innerHTML = name
@@ -418,6 +422,9 @@ export class HoverCard{
         } else {
             // if( !UI.hold_ctrl ) {
             HoverCard.is_showing = false
+            HoverCard.preview_source = ""
+            CardImages.setBackground(HoverCard.preview_left, '--bg-image', '')
+            CardImages.setBackground(HoverCard.preview_right, '--bg-image', '')
             HoverCard.preview_left.parentElement!.classList.add('hide')
             HoverCard.preview_right.parentElement!.classList.add('hide')
             // }
@@ -439,7 +446,7 @@ export class HoverCard{
             else
             if( card.isVisible() ) {
                 let bg_image = HoverCard.hover_card.style.getPropertyValue('--bg-image-true')
-                if( HoverCard.getPreview().style.getPropertyValue('--bg-image') == bg_image ) {
+                if( HoverCard.preview_source == bg_image ) {
                     bg_image = HoverCard.hover_card.style.getPropertyValue('--bg-image-false')
                 }
                 HoverCard.set2(HoverCard.hover_card, bg_image)

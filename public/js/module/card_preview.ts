@@ -2,6 +2,7 @@
 "use strict";
 
 import { Card } from './card_info.js';
+import { CardImages } from './card_images.js';
 import { copyToClipboard } from '../lib/clipboard.js'
 
 export class CardPreview {
@@ -128,7 +129,7 @@ export class CardPreview {
         const cardId = cardDiv.getAttribute('data-card-id') as string;
         const cardName = this.constCardDict[cardId].name;
         this.lastClickCardDiv = cardDiv;
-        this.previewImg.src = cardId;
+        CardImages.setImage(this.previewImg, cardId);
         const fullLinkId = this.constCardDict[cardId].full_link_id;
         const index = `${this.getDivIndex(cardDiv) + 1}/${cardDiv.parentNode?.children.length}`;
 

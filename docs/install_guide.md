@@ -94,9 +94,10 @@ your previous installation's `assets/cache` folder and copy it into the new
 installation to reuse those downloads. The text-only cards are fallback
 images, not missing card definitions. In v1.3.3, restart the game and refresh
 the browser to retry images that failed earlier in the session. The updated
-source build retries failed downloads when you refresh after a 30-second
-cooldown, and skips temporarily unreachable servers while trying the next
-configured provider.
+source build automatically retries temporary placeholders after a 30-second
+cooldown and replaces them on the open page when artwork becomes available.
+Repeated failures wait progressively longer, up to five minutes, and
+temporarily unreachable servers are skipped while trying the next provider.
 
 For offline play, an optional image package can be placed in `assets/pics` or referenced through `image_folders` in `launch.json`.
 

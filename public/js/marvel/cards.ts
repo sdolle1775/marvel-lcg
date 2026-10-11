@@ -11,6 +11,7 @@ import { ClassName } from './class_name.js'
 import { copyToClipboard } from '../lib/clipboard.js'
 import { AutoActivate } from './auto_activate.js'
 import { CardAnimation } from './card_animation.js'
+import { CardImages } from '../module/card_images.js'
 
 function delete_all_data(card_div: HTMLElement) {
     let last_child = card_div.querySelector('.info') as HTMLElement
@@ -712,6 +713,11 @@ class CardRender {
         if( card_div.style.getPropertyValue('--bg-image-false') != `url("${card.down_card_id}")` ) {
             card_div.style.setProperty('--bg-image-false', `url("${card.down_card_id}")`)
         }
+        // Hover/flip controls use the card IDs on the outer element. Override
+        // only the displayed face so recovered blob URLs do not change them.
+        const card_face = card_div.querySelector('.face') as HTMLElement
+        CardImages.setBackground(card_face, '--bg-image-true', pic_id)
+        CardImages.setBackground(card_face, '--bg-image-false', card.down_card_id)
 
         let is_facedown = card_div.classList.contains(ClassName.facedown)
         let url_text = ""

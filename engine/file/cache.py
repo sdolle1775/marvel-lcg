@@ -1,5 +1,6 @@
 from core import *
 import requests
+from math import ceil
 from time import monotonic
 from urllib.parse import urlsplit
 from engine.lib import ImageCreator, ImageLib
@@ -71,6 +72,19 @@ class Cache:
     def SetCache(card_id: str, data: bytes):
         Cache.cache[card_id] = data
         Cache.retry_after.pop(card_id, None)
+
+    @staticmethod
+    def GetImageRetrySeconds(card_id: str) -> int|None:
+        card_id = card_id.lstrip("/")
+        visited = set()
+        # Linked cards return their source image without their own cache entry.
+        while card_id not in Cache.cache and card_id in Cache.link_pic and card_id not in visited:
+            visited.add(card_id)
+            card_id = Cache.link_pic[card_id]
+        deadline = Cache.retry_after.get(card_id)
+        if deadline is None:
+            return None
+        return max(1, ceil(deadline - monotonic()))
 
     @staticmethod
     def LoadImage(card_id: str) -> bytes:

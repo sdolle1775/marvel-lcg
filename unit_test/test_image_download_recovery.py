@@ -1,6 +1,7 @@
 from contextlib import ExitStack
 from io import BytesIO
 from pathlib import Path
+from types import SimpleNamespace
 import tempfile
 import unittest
 from unittest.mock import Mock, patch
@@ -11,6 +12,7 @@ import requests
 from engine import Engine  # noqa: F401 - establishes the project's import order
 from engine.file import cache as cache_module
 from engine.file.cache import Cache
+from engine.device.web.server.server_files import GameServerFiles
 
 
 PRIMARY = 'https://cerebrodatastorage.blob.core.windows.net/cerebro-cards/official/{card_id:U}.jpg'
@@ -153,6 +155,40 @@ class TestImageDownloadRecovery(unittest.TestCase):
         self.assertEqual(Cache.LoadImage('37006'), self.art)
         self.assertEqual((self.cache / '37006.jpg').read_bytes(), self.art)
         self.assertEqual(self.get.call_count, 1)
+
+    def test_temporary_response_signals_retry_and_disables_browser_cache(self):
+        server = object.__new__(GameServerFiles)
+        server.HeaderCache = {'Cache-Control': 'public, max-age=31536000'}
+        server.device_manager = Mock()
+        request = SimpleNamespace(path='/37007')
+        self.get.side_effect = [requests.Timeout(), requests.Timeout(), response(self.art)]
+
+        failed = server.handle_image_request(request)
+        self.assertEqual(failed.status, 200)
+        self.assertEqual(failed.body, self.placeholder)
+        self.assertEqual(failed.headers['X-Card-Image-Retry-After'], '30')
+        self.assertEqual(failed.headers['Cache-Control'], 'no-store')
+        self.now = 17.2
+        self.assertEqual(server.handle_image_request(request).headers['X-Card-Image-Retry-After'], '13')
+        self.now = 31
+        recovered = server.handle_image_request(request)
+        self.assertEqual(recovered.body, self.art)
+        self.assertNotIn('X-Card-Image-Retry-After', recovered.headers)
+        self.assertEqual(recovered.headers['Cache-Control'], server.HeaderCache['Cache-Control'])
+
+    def test_linked_image_reports_source_retry_until_recovered(self):
+        Cache.SetLinkPic('alias', '37007')
+        self.get.side_effect = [requests.Timeout(), requests.Timeout(), response(self.art)]
+        self.assertEqual(Cache.LoadImage('alias'), self.placeholder)
+        self.assertEqual(Cache.GetImageRetrySeconds('/alias'), 30)
+        self.now = 31
+        self.assertEqual(Cache.LoadImage('alias'), self.art)
+        self.assertIsNone(Cache.GetImageRetrySeconds('alias'))
+
+    def test_intentional_text_image_is_not_retried(self):
+        Cache.LoadImage('no_image')
+        self.assertIsNone(Cache.GetImageRetrySeconds('no_image'))
+        self.get.assert_not_called()
 
 
 if __name__ == '__main__':

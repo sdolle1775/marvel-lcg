@@ -11,6 +11,20 @@ CATEGORY_NAME = "WEB"
 
 class GameServerFiles(GameServerBase):
 
+    def ImageResponse(self, card_id: str, image_bytes: bytes) -> web.Response:
+        headers = dict(self.HeaderCache)
+        retry_seconds = Cache.GetImageRetrySeconds(card_id)
+        if retry_seconds is not None:
+            # A valid placeholder is still a failed download. Let the client
+            # replace it automatically, and never cache it as finished artwork.
+            headers['X-Card-Image-Retry-After'] = str(retry_seconds)
+            headers['Cache-Control'] = 'no-store'
+        return web.Response(
+            body=image_bytes,
+            content_type=ImageLib.GetContentType(image_bytes),
+            headers=headers,
+        )
+
     async def handle_marvel(self, request: web.Request) -> web.StreamResponse:
         if request.query_string == '':
             return self.ReadFile('./public/main.html')
@@ -26,11 +40,7 @@ class GameServerFiles(GameServerBase):
 
         image_bytes = Cache.LoadImage(file_path)
 
-        return web.Response(
-            body=image_bytes,
-            content_type=ImageLib.GetContentType(image_bytes),
-            headers=self.HeaderCache,
-        )
+        return self.ImageResponse(file_path, image_bytes)
 
     def handle_image_request(self, request: web.Request) -> web.StreamResponse:
         # file_path = request.match_info['path']
@@ -42,11 +52,7 @@ class GameServerFiles(GameServerBase):
 
         self.device_manager.AddSize("Image", image_size)
 
-        return web.Response(
-            body=image_bytes,
-            content_type=ImageLib.GetContentType(image_bytes),
-            headers=self.HeaderCache,
-        )
+        return self.ImageResponse(file_path, image_bytes)
 
     @override
     def __init__(self) -> None:

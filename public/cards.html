@@ -363,6 +363,8 @@
 <!-- <script type="module" src="/public/js/module/card_statistics.js"></script> -->
 <script type="module">
     import { CardStatistics } from '/public/js/module/card_statistics.js';
+    import { CardImages } from '/public/js/module/card_images.js';
+    window.cardImages = CardImages;
     const cardStatistics = new CardStatistics();
     window.cardStatistics = cardStatistics;
 
@@ -418,7 +420,7 @@ function createCard(card_id, from_peek) {
         img.src = "no_image"
         div.classList.add('not-implemented')
     } else {
-        img.src = new_card_id
+        window.cardImages.setImage(img, new_card_id)
     }
 
     div.classList.add('image-div')

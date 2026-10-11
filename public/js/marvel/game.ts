@@ -3,6 +3,7 @@ import { ClassName } from './class_name.js'
 import { Message } from './message.js'
 import { Cards } from './cards.js';
 import { HoverCard } from './hover.js';
+import { CardImages } from '../module/card_images.js';
 
 
 // Define the structure for the statistics data
@@ -94,7 +95,7 @@ class GameStatistics {
                     const card = Cards.getCard(stats.id);
                     if (card && card.pic_id !== undefined) {
                         const img = document.createElement('img');
-                        img.src = card.pic_id; // Adjust the path as needed
+                        CardImages.setImage(img, card.pic_id);
                         img.alt = `${card.pic_id}`; // Add alt text for accessibility
                         img.style.width = '50px'; // Adjust size as needed
                         img.style.height = 'auto';

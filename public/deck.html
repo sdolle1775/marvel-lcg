@@ -70,6 +70,8 @@ import { SetInfo } from './module/set_info.js';
 // const cardStatistics = new CardStatistics();
 // window.cardStatistics = cardStatistics;
 import { CardPreview } from './module/card_preview.js';
+import { CardImages } from './module/card_images.js';
+window.cardImages = CardImages;
 // const cardPreview = new CardPreview(window.cardStatistics.const_card_dict);
 // window.cardPreview = cardPreview
 
@@ -179,7 +181,8 @@ var cardPreview
                         }
                         let image_name = get_name(hero)
     
-                        img.src = image_name
+                        img.dataset.cardImage = image_name
+                        CardImages.setImage(img, image_name)
                         option.setAttribute('data-text', text)
                         option.appendChild(img)
     
@@ -211,6 +214,9 @@ var cardPreview
             let details2 = details.cloneNode(true)
 
             details2.style.display = "flex"
+            details2.querySelectorAll('img[data-card-image]').forEach(img => {
+                CardImages.setImage(img, img.dataset.cardImage)
+            })
             details2.querySelectorAll("button").forEach(e => {
                 e.onclick = async () => {
                     e.parentNode.querySelectorAll("button").forEach(e2 => {
@@ -434,7 +440,7 @@ function getDeck(is_private) {
 function create_card(card_id, from_peek) {
     let img = document.createElement('img')
     let new_card_id = card_id
-    img.src = new_card_id
+    window.cardImages.setImage(img, new_card_id)
     let div = document.createElement('div')
     div.classList.add('image-div')
     div.appendChild(img)
