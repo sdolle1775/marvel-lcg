@@ -250,10 +250,18 @@ export class Button{
     }
 
     static doLoad(solt: number) {
+        Button.doLoadSave(`save_${solt}.json`)
+    }
+
+    static doLoadAutoSave() {
+        Button.doLoadSave("auto_save.json")
+    }
+
+    static doLoadSave(fileName: string) {
         Game.setGameOver(false)
         ErrorDialog.hideError()
         HistoryLog.close()
-        Button.doDebug(`/load save_${solt}.json:-1`)
+        Button.doDebug(`/load ${fileName}:-1`)
         UI.prompt.setPromptWait()
     }
 
@@ -584,6 +592,12 @@ export class Button{
             onClick: () => {Button.doLoad(0)}
         })
         Button.createButtonBase(parent_div3, {
+            text: "Load Auto-Save",
+            class_name: "do-load",
+            id: "load-btn-auto",
+            onClick: () => {Button.doLoadAutoSave()}
+        })
+        Button.createButtonBase(parent_div3, {
             text: "Load 1",
             class_name: "do-load",
             id: "load-btn-1",
@@ -660,6 +674,15 @@ export class Button{
             },
             callWhenInit: true,
             cookie_name: 'btn_pause_flip',
+        })
+        Button.createButtonBase(parent_div4, {
+            text: "Auto Save",
+            property: 'auto_save',
+            onClick: () => {
+                Client.syncAutoSave(ButtonSetting.auto_save != 0)
+            },
+            callWhenInit: true,
+            cookie_name: 'btn_auto_save',
         })
         // Button.createButton3(parent_div4, "Load Auto Activate Config", "", "", () => {AutoActivate.doLoadAutoActivateConfig()})
         // Button.createButton3(parent_div4, "Save AA Config", "", "", () => {AutoActivate.saveConfig()})
