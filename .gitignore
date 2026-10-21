@@ -12,6 +12,7 @@
 /assets/cache/
 /assets/pics/
 /save_*.json
+/auto_save.json
 /crash.json
 /crash.log
 /statistics.json
