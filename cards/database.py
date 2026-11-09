@@ -115,6 +115,7 @@ class CardsDB:
         import importlib
         import importlib.util
         import ast
+        import tokenize
 
         if origin_card_id in CardsDB.ability_cache:
             return CardsDB.ability_cache[origin_card_id]
@@ -152,21 +153,22 @@ class CardsDB:
                     return path
             return None
 
-        unbuild_py = has_unbuild_py()
+        unbuild_py = has_unbuild_py() if CardsDB.cards_custom_files else None
 
-        if CardsDB.cards_custom_files and unbuild_py:
+        if unbuild_py:
 
             def try_load_module_user_defined(card_id: str):
                 try:
                     # Construct the full path to the module
                     full_path = unbuild_py
                     
-                    # Read the file content
-                    with open(full_path, 'r') as file:
+                    # Follow Python's source encoding rules, including UTF-8
+                    # BOMs and coding declarations, on every Windows locale.
+                    with tokenize.open(full_path) as file:
                         file_content = file.read()
                     
                     # Parse the file content into an AST
-                    tree = ast.parse(file_content)
+                    tree = ast.parse(file_content, filename=full_path)
                     
                     # `from . import *` -> `from cards.pack import *`
                     class ImportTransformer(ast.NodeTransformer):
@@ -188,8 +190,7 @@ class CardsDB:
                     
                     return ability_module
                 except Exception as e:
-                    Log.Print(f"Error loading module {card_id}: {e}")
-                    return None
+                    raise RuntimeError(f"Error loading custom card {card_id} from {unbuild_py}: {e}") from e
 
             ability_module = try_load_module_user_defined(card_id)
 
@@ -218,7 +219,13 @@ class CardsDB:
                     break
 
         if ability_module:
-            CardsDB.ability_cache[origin_card_id] = ability_module.GetAbilities()
+            try:
+                abilities = ability_module.GetAbilities()
+            except Exception as e:
+                if unbuild_py:
+                    raise RuntimeError(f"Error creating abilities for custom card {origin_card_id} from {unbuild_py}: {e}") from e
+                raise
+            CardsDB.ability_cache[origin_card_id] = abilities
             if not Build.release:
                 paper = CardsDB.FindCardPaper(origin_card_id)
                 if "TeamUp" in paper.desc:
