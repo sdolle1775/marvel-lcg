@@ -50,9 +50,9 @@ class MainSchemePhasePlaceThreat(GameRule):
     def __repr__(self) -> str:
         return "Main Scheme Phase Place Threat"
 
-class UniqueMinionRevealed(GameRule):
+class UniqueEncounterCardRevealed(GameRule):
     def __repr__(self) -> str:
-        return "Unique Minion Revealed"
+        return "Unique Encounter Card Revealed"
 
 class Activate(GameRule):
     def __repr__(self) -> str:

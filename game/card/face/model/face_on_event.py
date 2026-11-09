@@ -251,8 +251,9 @@ class ModelOnEvent(ModelBase):
                 if_no_entered_play: Callable[[], Any]|None=None,
                 if_entered_play: Callable[[], Any]|None=None
                 ) -> 'Message.WhenPlayerRevealCard|Message.WhenCardRevealed|None':
-        from game.effect.rule import GameRule
+        from game.effect.rule import GameRule, UniqueEncounterCardRevealed
         from game.message import Message
+        from game.card.face.base.card_encounter import EncounterNonVillainCard
         from game.card.face.attribute.can_surge import CanSurge
         from game.card.face.card_type import MainScheme
         from game.operate.faces import Faces
@@ -323,7 +324,22 @@ class ModelOnEvent(ModelBase):
             unregister_after_exec=False
         )
 
-        if not reveal_message.cancel_all_effects:
+        # Unique non-villain encounter cards cannot enter play alongside a
+        # matching unique card. Ignore their reveal effects (including
+        # keywords) and deal one facedown replacement, regardless of which
+        # out-of-play area they were revealed from (Rules Reference, Unique).
+        unique_conflict = (
+            not reveal_message.cancel_all_effects
+            and EncounterNonVillainCard.IsType(this)
+            and not this.IsInPlay()
+            and world.IsThisUniqueInPlay(this)
+        )
+        if unique_conflict:
+            unique_rule = UniqueEncounterCardRevealed(this)
+            Faces.DiscardAll([this], unique_rule)
+            player.DealEncounterCards(1, unique_rule)
+
+        if not reveal_message.cancel_all_effects and not unique_conflict:
             revealed_message = Message.WhenCardRevealed(this, reveal_message)
             this.OnWhenCardRevealed(revealed_message)
         else:
@@ -336,7 +352,7 @@ class ModelOnEvent(ModelBase):
 # revealed_message  |   None        | None
 # reveal_message    |   Yes         | Yes
 #
-        if not reveal_message.cancel_all_effects:
+        if not reveal_message.cancel_all_effects and not unique_conflict:
             if CanSurge.IsType(this) and not bool(world.rule.v18_timing):
                 effect = this.ResolveSurge(player)
                 if effect:

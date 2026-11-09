@@ -43,15 +43,9 @@ class Minion(Enemy, CanQuickstrike, CanTeamwork, HasGuard, HasPatrol, HasVillain
 
     @override
     def OnWhenCardRevealed(self, revealed_message: 'Message.WhenCardRevealed') -> None:
-        from game.effect.rule import UniqueMinionRevealed
         player = revealed_message.GetToPlayer()
         if self.PutIntoPlay(player, revealed_message.by_effect):
             return super().OnWhenCardRevealed(revealed_message)
-        else:
-            # If a unique minion is revealed from the encounter deck and attempts to enter play while another unique character with the same title is already in play, the player who is revealing that minion discards it, then reveals a new card from the encounter deck.
-            if revealed_message.IsFromEncounterDeck():
-                player.DealEncounterCards(1, UniqueMinionRevealed(self))
-            return None
 
     @override
     def OnPutIntoPlay(self, message: 'Message.WhenCardPutIntoPlay') -> 'bool':
