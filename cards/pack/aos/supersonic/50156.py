@@ -5,10 +5,9 @@ from . import *
 def GetAbilities() -> Sequence['Ability']:
 
     return [
-        *AbilityFactory.UnitCannotDefend(
+        *AbilityFactory.UnitCannotMakeBasicDefense(
             CardFinder(non_trait="AERIAL"),
             "This",
-            cannot_trigger_defense_ability=True,
         ),
     ]
 
