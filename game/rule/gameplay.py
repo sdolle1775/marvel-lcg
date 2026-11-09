@@ -47,7 +47,7 @@ def GetGamePlayRules() -> List['Ability']:
         message: 'Message.AfterUnitAttackUnit',
     ) -> None:
         attacked = message.attacked
-        if CanRetaliate.IsType(attacked):
+        if CanRetaliate.IsReallyType(attacked):
             attacked.ResolveRetaliate(message.would_atk_unit_message)
 
     def resolve_v18_vulnerable(
@@ -138,7 +138,9 @@ def GetGamePlayRules() -> List['Ability']:
             [
                 lambda effect, message:
                     bool(effect.world.rule.v18_timing) and
-                    CanRetaliate.IsType(message.attacked) and
+                    # Encased in Ice counts as a minion for attacks but has
+                    # only the attachment's attributes.
+                    CanRetaliate.IsReallyType(message.attacked) and
                     message.attacked.retaliate > 0 and
                     message.attacked.IsInPlay() and
                     not message.attacker.IsDefeated() and
