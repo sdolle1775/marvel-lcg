@@ -653,6 +653,37 @@ class World(WorldAction, WorldFind):
                 return
         return
 
+    def AutoSaveOnRoundStart(self) -> None:
+        """Write auto_save.json when a live round begins.
+
+        A failed save is logged and ignored so it cannot end the current game.
+        Replays, fast-forwards, puzzles, and unit tests are skipped so they
+        cannot overwrite a player's checkpoint.
+        """
+        from game.test import Test
+        from engine import Engine
+        from engine.log import Log
+
+        if Test.IsInTesting() or Engine.in_unit_test:
+            return
+        if self.scene.is_puzzle or self.controller_manager.replay.is_replay:
+            return
+        if self.controller_manager.skip.is_skipping:
+            return
+        if not Engine.game.session.auto_save_enabled:
+            return
+
+        try:
+            Engine.statistics.Save()
+            saved = Engine.game.session.SaveScene(
+                name="auto_save.json",
+                delete_old=False,
+            )
+            if saved:
+                Log.Info("SESSION", f"Auto-save: {saved}")
+        except Exception as exc:
+            Log.Warn("SESSION", f"Auto-save failed: {exc}")
+
     def OnGameLoop(self) -> None:
         from game.message import Message
         from game.effect.rule import GameRule
@@ -663,6 +694,7 @@ class World(WorldAction, WorldFind):
                 self.phase.SetState(Phase.State.StartRound)
                 self.current_player = None
                 self.round_id += 1
+                self.AutoSaveOnRoundStart()
                 start_message = Message.WhenRoundStart(self.round_id, self)
                 start_message.Send()
 
