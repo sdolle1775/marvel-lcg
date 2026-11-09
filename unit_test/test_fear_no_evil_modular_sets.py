@@ -10,6 +10,7 @@ from cards.database import CardsDB
 from core.utility.types import Types
 from engine.lib.version import Ver
 from game.card.factory import CardFactory
+from game.element.resources import Resources
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -95,6 +96,7 @@ class TestFearNoEvilModularSetRegistration(unittest.TestCase):
             self.assertEqual(papers[card_id]["desc"]["Uses"], "2,civilian")
             self.assertEqual(papers[card_id]["desc"]["Crisis"], "1")
             self.assertEqual(papers[card_id]["traits"], ["DISASTER"])
+        self.assertIn("Spend 2 [mental] resources", papers["60177"]["text"])
         self.assertEqual(
             papers["60180"]["desc"],
             {"StartingThreat": "1*", "Hinder": "2*", "Hazard": "1", "Boost": "2"},
@@ -153,12 +155,12 @@ class TestDisastersMechanics(unittest.TestCase):
 
     def test_each_rescue_action_offers_its_printed_resource_or_exhaust_cost(self):
         cases = {
-            "60177": ("g", "HasTrait"),
-            "60178": ("y", "HasTrait"),
-            "60179": ("r", "IsTough"),
+            "60177": ("b", "mental", "HasTrait"),
+            "60178": ("y", "energy", "HasTrait"),
+            "60179": ("r", "physical", "IsTough"),
         }
 
-        for card_id, (resource, bonus_method) in cases.items():
+        for card_id, (resource, resource_name, bonus_method) in cases.items():
             with self.subTest(card_id=card_id):
                 module = import_module(f"cards.pack.fne.disasters.{card_id}")
                 ability = module.GetAbilities()[0]
@@ -173,6 +175,13 @@ class TestDisastersMechanics(unittest.TestCase):
                 cost = pay.GetCost(MagicMock(), [])
                 self.assertEqual(getattr(cost, resource), 2)
                 self.assertEqual(cost.val, 2)
+                self.assertIn(f"Spend 2 [{resource_name}] resources", pay.name)
+                self.assertEqual(cost.GetPaymentText(), resource.upper() * 2)
+                for payment in (resource * 2, resource + "g", "gg"):
+                    self.assertTrue(Resources.FromText(payment).IsMatchCost(cost))
+                for payment in (resource, "g", "rr", "yy", "bb", "ry", "rb", "yb"):
+                    if payment != resource * 2:
+                        self.assertFalse(Resources.FromText(payment).IsMatchCost(cost))
                 self.assertEqual(len(exhaust.cost_funcs), 1)
 
                 character = MagicMock()

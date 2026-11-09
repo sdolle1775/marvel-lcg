@@ -6,6 +6,7 @@ def DisasterEnvironmentAbilities(
     bonus_condition: Callable[['CardFace'], bool],
 ) -> List['Ability']:
     resource_name = {
+        "B": "[mental]",
         "G": "[wild]",
         "Y": "[energy]",
         "R": "[physical]",

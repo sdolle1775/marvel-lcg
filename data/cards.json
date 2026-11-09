@@ -63934,7 +63934,7 @@
             "desc": {"Boost": "2", "Uses": "2,civilian", "Crisis": "1"},
             "traits": ["DISASTER"],
             "set_name": "Disasters",
-            "text": "Uses (2 civilian counters).\n<b>Hero Action</b>: Spend 2 [wild] resources or exhaust a hero or ally you control → remove 1 civilian counter from here (2 counters instead if you exhausted a [[MYSTIC]] character)."
+            "text": "Uses (2 civilian counters).\n<b>Hero Action</b>: Spend 2 [mental] resources or exhaust a hero or ally you control → remove 1 civilian counter from here (2 counters instead if you exhausted a [[MYSTIC]] character)."
         },
         {
             "card_id": "60178",
@@ -65703,5 +65703,5 @@
             "text": "Play only if any player controls a [[Martial Artist]] card.\nAttach to a friendly character. Max 1 per character.\nAttached character gets +1 hit point and gains the [[Martial Artist]] trait."
         }
     ],
-    "checksum": "ac7270578bca505b6778bd6b5bdf932608096aba01b024aaec7a92f3bfa607f0"
+    "checksum": "a9bd90803a420f2a82b6718b22a12f6de368fe8c9d9d8ee003acf6615689a44c"
 }

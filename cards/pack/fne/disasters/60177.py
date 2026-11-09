@@ -3,6 +3,6 @@ from . import *
 
 def GetAbilities() -> Sequence['Ability']:
     return DisasterEnvironmentAbilities(
-        "G",
+        "B",
         lambda character: character.HasTrait("MYSTIC"),
     )
